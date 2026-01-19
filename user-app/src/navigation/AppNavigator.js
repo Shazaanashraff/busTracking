@@ -9,6 +9,10 @@ import LanguageSelectScreen from '../screens/LanguageSelectScreen';
 import HomeScreen from '../screens/HomeScreen';
 import RouteBusesScreen from '../screens/RouteBusesScreen';
 import SearchResultsScreen from '../screens/SearchResultsScreen';
+import SeatSelectionScreen from '../screens/SeatSelectionScreen';
+import PassengerDetailsScreen from '../screens/PassengerDetailsScreen';
+import PaymentScreen from '../screens/PaymentScreen';
+import TicketScreen from '../screens/TicketScreen';
 import MyBookingsScreen from '../screens/MyBookingsScreen';
 import TrackByBusScreen from '../screens/TrackByBusScreen';
 
@@ -39,6 +43,10 @@ const AppNavigator = () => {
       {/* Feature Screens */}
       <Stack.Screen name="RouteBuses" component={RouteBusesScreen} />
       <Stack.Screen name="SearchResults" component={SearchResultsScreen} />
+      <Stack.Screen name="SeatSelection" component={SeatSelectionScreen} />
+      <Stack.Screen name="PassengerDetails" component={PassengerDetailsScreen} />
+      <Stack.Screen name="Payment" component={PaymentScreen} />
+      <Stack.Screen name="Ticket" component={TicketScreen} />
       <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
       <Stack.Screen name="TrackByBus" component={TrackByBusScreen} />
 
