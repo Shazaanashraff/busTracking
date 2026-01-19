@@ -1,46 +1,53 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-
-const { width } = Dimensions.get('window');
+import { View, Text, StyleSheet, TouchableOpacity, Image, StatusBar } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
 const LanguageSelectScreen = ({ navigation }) => {
-    const selectLanguage = (lang) => {
-        // In a real app, save this preference
-        navigation.replace('Home');
-    };
-
     return (
         <View style={styles.container}>
-            <StatusBar style="dark" />
+            <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
 
-            <View style={styles.content}>
-                <View style={styles.logoContainer}>
-                    <Text style={styles.logoText}>🚌</Text>
-                    <Text style={styles.appName}>Sri Bus Tracker</Text>
-                </View>
-
-                <Text style={styles.title}>Select Language</Text>
-                <Text style={styles.subtitle}>භාෂාව තෝරන්න</Text>
-
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                        style={styles.languageButton}
-                        onPress={() => selectLanguage('si')}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.sinhalaText}>සිංහල</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.languageButton, styles.englishButton]}
-                        onPress={() => selectLanguage('en')}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.englishText}>English</Text>
-                    </TouchableOpacity>
-                </View>
+            <View style={styles.iconContainer}>
+                <Feather name="globe" size={64} color="#1F2937" />
             </View>
+
+            <Text style={styles.title}>Welcome</Text>
+            <Text style={styles.subtitle}>Select your preferred language to continue</Text>
+
+            <View style={styles.card}>
+                <TouchableOpacity
+                    style={styles.button}
+                    activeOpacity={0.9}
+                    onPress={() => navigation.navigate('Home')}
+                >
+                    <Text style={styles.buttonText}>සිංහල</Text>
+                    <Feather name="chevron-right" size={20} color="#1F2937" />
+                </TouchableOpacity>
+
+                <View style={styles.divider} />
+
+                <TouchableOpacity
+                    style={styles.button}
+                    activeOpacity={0.9}
+                    onPress={() => navigation.navigate('Home')}
+                >
+                    <Text style={styles.buttonText}>English</Text>
+                    <Feather name="chevron-right" size={20} color="#1F2937" />
+                </TouchableOpacity>
+
+                <View style={styles.divider} />
+
+                <TouchableOpacity
+                    style={styles.button}
+                    activeOpacity={0.9}
+                    onPress={() => navigation.navigate('Home')}
+                >
+                    <Text style={styles.buttonText}>தமிழ்</Text>
+                    <Feather name="chevron-right" size={20} color="#1F2937" />
+                </TouchableOpacity>
+            </View>
+
+            <Text style={styles.footer}>Sri Lankan Bus Tracker App</Text>
         </View>
     );
 };
@@ -48,71 +55,69 @@ const LanguageSelectScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FCD24A', // Primary Yellow
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
+        padding: 32,
+    },
+    iconContainer: {
+        alignSelf: 'center',
+        marginBottom: 32,
+        width: 120,
+        height: 120,
+        backgroundColor: '#FFF',
+        borderRadius: 60,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    content: {
-        width: width * 0.85,
-        backgroundColor: '#fff',
-        borderRadius: 24,
-        padding: 32,
-        alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-    logoContainer: {
-        alignItems: 'center',
-        marginBottom: 40,
-    },
-    logoText: {
-        fontSize: 64,
-        marginBottom: 8,
-    },
-    appName: {
-        fontSize: 24,
-        fontWeight: '800',
-        color: '#1F2937',
+        shadowOpacity: 0.05,
+        elevation: 4,
     },
     title: {
-        fontSize: 20,
-        fontWeight: '700',
+        fontSize: 32,
+        fontWeight: '800',
         color: '#1F2937',
-        marginBottom: 4,
+        textAlign: 'center',
+        marginBottom: 12,
     },
     subtitle: {
-        fontSize: 18,
-        color: '#4B5563',
-        marginBottom: 32,
+        fontSize: 16,
+        color: '#6B7280',
+        textAlign: 'center',
+        marginBottom: 48,
+        lineHeight: 24,
     },
-    buttonContainer: {
-        width: '100%',
-        gap: 16,
+    card: {
+        backgroundColor: '#FFF',
+        borderRadius: 24,
+        padding: 8,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        elevation: 8,
     },
-    languageButton: {
-        backgroundColor: '#1F2937',
-        paddingVertical: 16,
-        borderRadius: 16,
+    button: {
+        padding: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
     },
-    englishButton: {
-        backgroundColor: '#F3F4F6',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    sinhalaText: {
+    buttonText: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#FFF',
-    },
-    englishText: {
-        fontSize: 18,
-        fontWeight: '600',
         color: '#1F2937',
     },
+    divider: {
+        height: 1,
+        backgroundColor: '#F3F4F6',
+        marginHorizontal: 16,
+    },
+    footer: {
+        position: 'absolute',
+        bottom: 40,
+        alignSelf: 'center',
+        fontSize: 12,
+        color: '#9CA3AF',
+        fontWeight: '600',
+    }
 });
 
 export default LanguageSelectScreen;

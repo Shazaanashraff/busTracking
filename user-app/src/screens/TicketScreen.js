@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Dimensions } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -8,14 +9,14 @@ const TicketScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FCD24A" />
+            <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
 
-            <View style={styles.content}>
+            <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.successIcon}>
-                    <Text style={{ fontSize: 40 }}>✅</Text>
+                    <Feather name="check-circle" size={48} color="#059669" />
                 </View>
                 <Text style={styles.title}>Booking Confirmed!</Text>
-                <Text style={styles.subtitle}>Your ticket has been saved.</Text>
+                <Text style={styles.subtitle}>Your ticket has been booked successfully.</Text>
 
                 <View style={styles.ticket}>
                     <View style={styles.ticketHeader}>
@@ -27,8 +28,6 @@ const TicketScreen = ({ navigation, route }) => {
                             <Text style={styles.plateText}>{bus.plate}</Text>
                         </View>
                     </View>
-
-                    <View style={styles.dashedLine} />
 
                     <View style={styles.ticketBody}>
                         <View style={styles.row}>
@@ -42,10 +41,12 @@ const TicketScreen = ({ navigation, route }) => {
                             </View>
                         </View>
 
-                        <View style={[styles.row, { marginTop: 16 }]}>
+                        <View style={styles.divider} />
+
+                        <View style={styles.row}>
                             <View>
                                 <Text style={styles.label}>Passenger</Text>
-                                <Text style={styles.value}>{passenger.name}</Text>
+                                <Text style={styles.value}>{passenger.name || 'Guest'}</Text>
                             </View>
                             <View style={{ alignItems: 'flex-end' }}>
                                 <Text style={styles.label}>Seat No(s)</Text>
@@ -54,11 +55,16 @@ const TicketScreen = ({ navigation, route }) => {
                         </View>
                     </View>
 
-                    <View style={styles.dashedLine} />
+                    {/* Perforated Line Effect */}
+                    <View style={styles.perforationContainer}>
+                        <View style={styles.circleLeft} />
+                        <View style={styles.dashedLine} />
+                        <View style={styles.circleRight} />
+                    </View>
 
                     <View style={styles.ticketFooter}>
                         <View style={styles.qrPlaceholder}>
-                            <Text style={styles.qrText}>QR CODE</Text>
+                            <Ionicons name="qr-code-outline" size={100} color="#1F2937" />
                         </View>
                         <Text style={styles.ticketId}>Ref: #BK-{Math.floor(Math.random() * 10000)}</Text>
                     </View>
@@ -70,7 +76,7 @@ const TicketScreen = ({ navigation, route }) => {
                 >
                     <Text style={styles.homeButtonText}>Back to Home</Text>
                 </TouchableOpacity>
-            </View>
+            </ScrollView>
         </View>
     );
 };
@@ -78,13 +84,12 @@ const TicketScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FCD24A',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
     },
     content: {
-        width: width * 0.9,
         alignItems: 'center',
+        padding: 24,
+        paddingTop: 60,
     },
     successIcon: {
         width: 80,
@@ -93,10 +98,14 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 24,
+        shadowColor: '#059669',
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
     },
-    title: { fontSize: 24, fontWeight: '800', color: '#1F2937', marginBottom: 4 },
-    subtitle: { fontSize: 16, color: '#4B3621', marginBottom: 32, opacity: 0.8 },
+    title: { fontSize: 24, fontWeight: '800', color: '#1F2937', marginBottom: 8 },
+    subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 32, textAlign: 'center' },
     ticket: {
         width: '100%',
         backgroundColor: '#FFF',
@@ -105,7 +114,7 @@ const styles = StyleSheet.create({
         marginBottom: 32,
         shadowColor: '#000',
         shadowOpacity: 0.1,
-        shadowRadius: 20,
+        shadowRadius: 24,
         elevation: 8,
     },
     ticketHeader: {
@@ -115,53 +124,75 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    operator: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-    route: { color: '#9CA3AF', fontSize: 12, marginTop: 2 },
+    operator: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+    route: { color: '#9CA3AF', fontSize: 12, marginTop: 4 },
     plateBadge: {
-        backgroundColor: '#FCD24A',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        backgroundColor: '#FFF',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         borderRadius: 8,
     },
-    plateText: { color: '#1F2937', fontWeight: '700', fontSize: 12 },
-    dashedLine: {
-        height: 1,
-        width: '100%',
-        backgroundColor: '#E5E7EB',
-        borderStyle: 'dashed',
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-    },
+    plateText: { color: '#1F2937', fontWeight: '800', fontSize: 14 },
     ticketBody: { padding: 24 },
     row: { flexDirection: 'row', justifyContent: 'space-between' },
-    label: { fontSize: 12, color: '#6B7280', marginBottom: 4 },
+    divider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 20 },
+    label: { fontSize: 12, color: '#9CA3AF', marginBottom: 4, textTransform: 'uppercase', fontWeight: '600' },
     value: { fontSize: 16, fontWeight: '700', color: '#1F2937' },
-    ticketFooter: {
-        padding: 24,
+
+    perforationContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F9FAFB',
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
+        justifyContent: 'space-between',
+        height: 20,
+        backgroundColor: '#FFF',
+        overflow: 'hidden',
+    },
+    circleLeft: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#F3F4F6',
+        marginLeft: -10,
+    },
+    circleRight: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#F3F4F6',
+        marginRight: -10,
+    },
+    dashedLine: {
+        flex: 1,
+        height: 1,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        borderStyle: 'dashed',
+        marginHorizontal: 16,
+    },
+
+    ticketFooter: {
+        padding: 32,
+        alignItems: 'center',
+        backgroundColor: '#FFF',
     },
     qrPlaceholder: {
-        width: 150,
-        height: 150,
-        backgroundColor: '#FFF',
+        padding: 16,
         borderWidth: 2,
         borderColor: '#1F2937',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
+        borderRadius: 16,
+        marginBottom: 16,
     },
-    qrText: { fontWeight: '800', color: '#1F2937' },
-    ticketId: { fontSize: 12, color: '#6B7280' },
+    ticketId: { fontSize: 14, color: '#6B7280', fontFamily: 'monospace' },
     homeButton: {
         backgroundColor: '#1F2937',
         paddingHorizontal: 32,
-        paddingVertical: 16,
+        paddingVertical: 18,
         borderRadius: 16,
         width: '100%',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        elevation: 4,
     },
     homeButtonText: { color: '#FFF', fontWeight: '700', fontSize: 16 },
 });
