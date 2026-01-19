@@ -17,7 +17,7 @@ const HomeScreen = ({ navigation }) => {
                     <Text style={styles.greeting}>Ayubowan! 🙏</Text>
                     <Text style={styles.title}>Find your bus</Text>
                 </View>
-                <TouchableOpacity style={styles.profileBtn}>
+                <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('Profile')}>
                     <Text style={{ fontSize: 20 }}>👤</Text>
                 </TouchableOpacity>
             </View>

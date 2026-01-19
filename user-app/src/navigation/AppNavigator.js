@@ -14,6 +14,8 @@ import PassengerDetailsScreen from '../screens/PassengerDetailsScreen';
 import PaymentScreen from '../screens/PaymentScreen';
 import TicketScreen from '../screens/TicketScreen';
 import MyBookingsScreen from '../screens/MyBookingsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 import TrackByBusScreen from '../screens/TrackByBusScreen';
 
 const Stack = createNativeStackNavigator();
@@ -48,6 +50,8 @@ const AppNavigator = () => {
       <Stack.Screen name="Payment" component={PaymentScreen} />
       <Stack.Screen name="Ticket" component={TicketScreen} />
       <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="TrackByBus" component={TrackByBusScreen} />
 
       {/* Existing Screens (Recycled) */}

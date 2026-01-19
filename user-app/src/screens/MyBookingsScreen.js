@@ -69,8 +69,31 @@ const MyBookingsScreen = ({ navigation }) => {
             <Text style={styles.detailsText}>{item.operator} • {item.plate}</Text>
 
             <View style={styles.cardFooter}>
-                <Text style={styles.seatsText}>Seats: {item.seats.join(', ').replace(/R-|L-/g, '')}</Text>
-                <Text style={styles.actionText}>View Ticket →</Text>
+                {/* Upcoming Actions */}
+                {activeTab === 'upcoming' ? (
+                    <View style={styles.actionRow}>
+                        <TouchableOpacity
+                            style={styles.cancelBtn}
+                            onPress={() => alert('Booking Cancelled')}
+                        >
+                            <Text style={styles.cancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.trackBtn}
+                            onPress={() => navigation.navigate('LiveMap', { routeId: '01', busId: item.plate, directTrack: true })}
+                        >
+                            <Text style={styles.trackText}>Track Bus 📍</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    /* History Actions */
+                    <View style={styles.historyFooter}>
+                        <Text style={styles.seatsText}>Seats: {item.seats.join(', ').replace(/R-|L-/g, '')}</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Ticket', { bus: item, seats: item.seats, passenger: {}, totalAmount: item.amount })}>
+                            <Text style={styles.viewTicketText}>View Ticket →</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
         </TouchableOpacity>
     );
@@ -180,14 +203,45 @@ const styles = StyleSheet.create({
     routeText: { fontSize: 16, fontWeight: '800', color: '#1F2937', marginBottom: 4 },
     detailsText: { fontSize: 12, color: '#4B5563', marginBottom: 12 },
     cardFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        marginTop: 12,
+        paddingTop: 12,
         borderTopWidth: 1,
         borderTopColor: '#F3F4F6',
-        paddingTop: 12
+    },
+    actionRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 12,
+    },
+    cancelBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
+        backgroundColor: '#FEF2F2',
+    },
+    cancelText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#EF4444',
+    },
+    trackBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
+        backgroundColor: '#ECFDF5',
+    },
+    trackText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#059669',
+    },
+    historyFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     seatsText: { fontSize: 12, fontWeight: '600', color: '#374151' },
-    actionText: { fontSize: 12, fontWeight: '700', color: '#2563EB' },
+    viewTicketText: { fontSize: 12, fontWeight: '700', color: '#2563EB' },
     emptyState: { alignItems: 'center', marginTop: 50 },
     emptyText: { color: '#9CA3AF', fontWeight: '600' }
 });
