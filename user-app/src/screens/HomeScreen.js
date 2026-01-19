@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Dimensions } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Dimensions, StatusBar } from 'react-native';
+import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -9,91 +9,96 @@ const HomeScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar style="dark" />
+            <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
 
-            {/* Header */}
+            {/* Premium Header */}
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.greeting}>Ayubowan! 🙏</Text>
-                    <Text style={styles.title}>Find your bus</Text>
+                    <Text style={styles.greeting}>Good Morning,</Text>
+                    <Text style={styles.username}>Kasun Perera</Text>
                 </View>
-                <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('Profile')}>
-                    <Text style={{ fontSize: 20 }}>👤</Text>
+                <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Notifications')}>
+                    <Ionicons name="notifications-outline" size={24} color="#1F2937" />
+                    <View style={styles.badge} />
                 </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-                {/* Main Search - By Route - "Langa Bus Eka Hoyanna" style */}
-                <View style={styles.searchCard}>
-                    <Text style={styles.cardHeader}>🔢 Search by Route</Text>
+                {/* Main Search Card */}
+                <View style={styles.heroCard}>
+                    <Text style={styles.heroTitle}>Where do you want to go?</Text>
+
+                    {/* Route Input */}
                     <View style={styles.inputContainer}>
+                        <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Ex: 138, 177, 120..."
+                            placeholder="Search by route (e.g., 138, 177)"
+                            placeholderTextColor="#9CA3AF"
                             value={routeSearch}
                             onChangeText={setRouteSearch}
                             keyboardType="numeric"
                         />
-                        <TouchableOpacity style={styles.searchBtn} onPress={() => navigation.navigate('RouteBuses', { route: routeSearch || '138' })}>
-                            <Text style={styles.searchBtnText}>Go</Text>
-                        </TouchableOpacity>
                     </View>
-                    <TouchableOpacity style={styles.nearestBtn}>
-                        <Text style={styles.nearestBtnText}>📍 Langa Bus Eka Hoyanna (Nearest Bus)</Text>
-                    </TouchableOpacity>
-                </View>
 
-                {/* Journey Plan - From / To */}
-                <View style={styles.sectionCard}>
-                    <Text style={styles.sectionTitle}>🗺️ Plan Journey</Text>
-                    <View style={styles.journeyInputs}>
-                        <View style={styles.journeyInputWrapper}>
-                            <Text style={styles.label}>From</Text>
-                            <TextInput style={styles.journeyInput} placeholder="Colombo Fort" />
-                        </View>
-                        <View style={styles.switchIcon}>
-                            <Text>⬇️</Text>
-                        </View>
-                        <View style={styles.journeyInputWrapper}>
-                            <Text style={styles.label}>To</Text>
-                            <TextInput style={styles.journeyInput} placeholder="Kandy" />
-                        </View>
-                    </View>
-                    <TouchableOpacity style={styles.planBtn} onPress={() => navigation.navigate('SearchResults')}>
-                        <Text style={styles.planBtnText}>Search Buses</Text>
+                    <TouchableOpacity
+                        style={styles.primaryBtn}
+                        activeOpacity={0.9}
+                        onPress={() => navigation.navigate('RouteBuses', { route: routeSearch || '138' })}
+                    >
+                        <Text style={styles.primaryBtnText}>Find Buses</Text>
+                        <Feather name="arrow-right" size={20} color="#FFF" />
                     </TouchableOpacity>
                 </View>
 
                 {/* Quick Actions Grid */}
+                <Text style={styles.sectionHeader}>Quick Actions</Text>
                 <View style={styles.grid}>
-                    <TouchableOpacity
-                        style={styles.gridCard}
-                        onPress={() => navigation.navigate('TrackByBus')}
-                    >
-                        <View style={[styles.iconBox, { backgroundColor: '#ECFDF5' }]}>
-                            <Text style={{ fontSize: 24 }}>🚍</Text>
+                    <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('SearchResults')}>
+                        <View style={[styles.iconBox, { backgroundColor: '#FEF3C7' }]}>
+                            <MaterialCommunityIcons name="map-marker-path" size={28} color="#D97706" />
                         </View>
-                        <Text style={styles.gridTitle}>Track Bus</Text>
-                        <Text style={styles.gridDesc}>By Plate No.</Text>
+                        <Text style={styles.actionLabel}>Plan Journey</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.gridCard}
-                        onPress={() => navigation.navigate('MyBookings')}
-                    >
-                        <View style={[styles.iconBox, { backgroundColor: '#EFF6FF' }]}>
-                            <Text style={{ fontSize: 24 }}>🧾</Text>
+                    <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('TrackByBus')}>
+                        <View style={[styles.iconBox, { backgroundColor: '#ECFDF5' }]}>
+                            <MaterialCommunityIcons name="radar" size={28} color="#059669" />
                         </View>
-                        <Text style={styles.gridTitle}>My Bookings</Text>
-                        <Text style={styles.gridDesc}>Tickets & History</Text>
+                        <Text style={styles.actionLabel}>Track Bus</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('MyBookings')}>
+                        <View style={[styles.iconBox, { backgroundColor: '#EEF2FF' }]}>
+                            <Ionicons name="ticket-outline" size={28} color="#4F46E5" />
+                        </View>
+                        <Text style={styles.actionLabel}>My Tickets</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Profile')}>
+                        <View style={[styles.iconBox, { backgroundColor: '#F3F4F6' }]}>
+                            <Feather name="user" size={28} color="#1F2937" />
+                        </View>
+                        <Text style={styles.actionLabel}>Profile</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Recent Promo or Tip */}
-                <View style={styles.promoCard}>
-                    <Text style={styles.promoTitle}>💡 Did you know?</Text>
-                    <Text style={styles.promoText}>You can now book seats on Luxury and Intercity buses directly through the app!</Text>
+                {/* Recent / Nearest Promo */}
+                <Text style={styles.sectionHeader}>Nearby</Text>
+                <View style={styles.nearbyCard}>
+                    <View style={styles.nearbyInfo}>
+                        <View style={styles.nearbyIconContainer}>
+                            <Ionicons name="location" size={24} color="#FCD24A" />
+                        </View>
+                        <View>
+                            <Text style={styles.nearbyTitle}>Nearest Halt: Pettah</Text>
+                            <Text style={styles.nearbySubtitle}>12 buses arriving in 10 mins</Text>
+                        </View>
+                    </View>
+                    <TouchableOpacity style={styles.arrowBtn}>
+                        <Feather name="chevron-right" size={24} color="#9CA3AF" />
+                    </TouchableOpacity>
                 </View>
 
             </ScrollView>
@@ -104,165 +109,126 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FCD24A',
+        backgroundColor: '#F3F4F6', // Lighter background for premium feel
     },
     header: {
-        paddingTop: 60,
         paddingHorizontal: 24,
+        paddingTop: 60,
         paddingBottom: 24,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
     greeting: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#4B3621',
-        opacity: 0.8,
+        fontSize: 16,
+        color: '#6B7280',
+        fontWeight: '500',
     },
-    title: {
-        fontSize: 28,
-        fontWeight: '800',
+    username: {
+        fontSize: 24,
         color: '#1F2937',
+        fontWeight: '800',
+        marginTop: 4,
     },
-    profileBtn: {
-        width: 44,
-        height: 44,
+    notificationBtn: {
+        width: 48,
+        height: 48,
         backgroundColor: '#FFF',
-        borderRadius: 22,
+        borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,
         elevation: 2,
     },
+    badge: {
+        position: 'absolute',
+        top: 12,
+        right: 14,
+        width: 8,
+        height: 8,
+        backgroundColor: '#EF4444',
+        borderRadius: 4,
+        borderWidth: 1.5,
+        borderColor: '#FFF',
+    },
     scrollContent: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 24,
         paddingBottom: 40,
     },
-    searchCard: {
+    heroCard: {
         backgroundColor: '#FFF',
-        borderRadius: 24,
-        padding: 20,
-        marginBottom: 16,
+        borderRadius: 32,
+        padding: 24,
         shadowColor: '#000',
-        shadowOpacity: 0.05,
-        elevation: 4,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.08,
+        shadowRadius: 24,
+        elevation: 8,
+        marginBottom: 32,
     },
-    cardHeader: {
-        fontSize: 16,
-        fontWeight: '700',
+    heroTitle: {
+        fontSize: 22,
+        fontWeight: '800',
         color: '#1F2937',
-        marginBottom: 12,
+        marginBottom: 20,
     },
     inputContainer: {
         flexDirection: 'row',
-        gap: 12,
-        marginBottom: 12,
-    },
-    input: {
-        flex: 1,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        height: 50,
-        fontSize: 16,
-        color: '#1F2937',
-    },
-    searchBtn: {
-        width: 50,
-        backgroundColor: '#1F2937',
-        borderRadius: 12,
-        justifyContent: 'center',
         alignItems: 'center',
-    },
-    searchBtnText: {
-        color: '#FFF',
-        fontWeight: '700',
-    },
-    nearestBtn: {
-        backgroundColor: '#FEF3C7',
-        paddingVertical: 12,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    nearestBtnText: {
-        color: '#92400E',
-        fontWeight: '700',
-        fontSize: 14,
-    },
-    sectionCard: {
-        backgroundColor: '#FFF',
-        borderRadius: 24,
-        padding: 20,
-        marginBottom: 16,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: '#1F2937',
-        marginBottom: 16,
-    },
-    journeyInputs: {
-        gap: 0,
-    },
-    journeyInputWrapper: {
         backgroundColor: '#F9FAFB',
         borderRadius: 16,
-        padding: 12,
+        paddingHorizontal: 16,
+        height: 56,
+        marginBottom: 16,
         borderWidth: 1,
         borderColor: '#E5E7EB',
     },
-    label: {
-        fontSize: 10,
-        color: '#6B7280',
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        marginBottom: 4,
-    },
-    journeyInput: {
+    searchIcon: { marginRight: 12 },
+    input: {
+        flex: 1,
         fontSize: 16,
-        fontWeight: '600',
         color: '#1F2937',
+        fontWeight: '500',
     },
-    switchIcon: {
-        alignSelf: 'center',
-        marginVertical: -10,
-        zIndex: 10,
-        backgroundColor: '#FFF',
-        width: 30,
-        height: 30,
-        borderRadius: 15,
+    primaryBtn: {
+        flexDirection: 'row',
+        backgroundColor: '#1F2937', // Dark button from reference 1
+        height: 56,
+        borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
+        gap: 12,
     },
-    planBtn: {
-        backgroundColor: '#1F2937',
-        marginTop: 16,
-        paddingVertical: 16,
-        borderRadius: 16,
-        alignItems: 'center',
-    },
-    planBtnText: {
+    primaryBtnText: {
         color: '#FFF',
         fontSize: 16,
         fontWeight: '700',
+    },
+    sectionHeader: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1F2937',
+        marginBottom: 16,
     },
     grid: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 32,
         gap: 16,
-        marginBottom: 16,
     },
-    gridCard: {
-        flex: 1,
+    actionItem: {
+        width: (width - 48 - 16) / 2, // 2 column grid
         backgroundColor: '#FFF',
-        borderRadius: 20,
         padding: 16,
-        alignItems: 'center',
-        shadowOpacity: 0.05,
+        borderRadius: 24,
+        alignItems: 'flex-start',
+        shadowColor: '#000',
+        shadowOpacity: 0.03,
         elevation: 2,
+        marginBottom: 8,
     },
     iconBox: {
         width: 50,
@@ -272,32 +238,48 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    gridTitle: {
-        fontSize: 14,
+    actionLabel: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#374151',
+    },
+    nearbyCard: {
+        backgroundColor: '#FFF',
+        borderRadius: 24,
+        padding: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        elevation: 2,
+    },
+    nearbyInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+    },
+    nearbyIconContainer: {
+        width: 48,
+        height: 48,
+        backgroundColor: '#1F2937',
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    nearbyTitle: {
+        fontSize: 16,
         fontWeight: '700',
         color: '#1F2937',
-        marginBottom: 2,
     },
-    gridDesc: {
-        fontSize: 10,
-        color: '#6B7280',
-    },
-    promoCard: {
-        backgroundColor: '#1E40AF',
-        borderRadius: 20,
-        padding: 20,
-    },
-    promoTitle: {
-        color: '#FFF',
-        fontWeight: '700',
-        fontSize: 14,
-        marginBottom: 6,
-    },
-    promoText: {
-        color: '#BFDBFE',
+    nearbySubtitle: {
         fontSize: 12,
-        lineHeight: 18,
+        color: '#6B7280',
+        marginTop: 4,
     },
+    arrowBtn: {
+        padding: 8,
+    }
 });
 
 export default HomeScreen;
