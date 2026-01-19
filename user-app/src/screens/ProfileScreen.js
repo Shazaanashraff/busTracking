@@ -11,11 +11,11 @@ const ProfileScreen = ({ navigation }) => {
     };
 
     const menuItems = [
-        { icon: <Ionicons name="map-outline" size={22} color="#4B5563" />, label: 'Saved Routes', action: () => { } },
+        { icon: <Ionicons name="map-outline" size={22} color="#4B5563" />, label: 'Saved Routes', action: () => navigation.navigate('SavedRoutes') },
         { icon: <Ionicons name="globe-outline" size={22} color="#4B5563" />, label: 'Language', value: 'English', action: () => navigation.navigate('LanguageSelect') },
         { icon: <Ionicons name="notifications-outline" size={22} color="#4B5563" />, label: 'Notifications', action: () => navigation.navigate('Notifications') },
-        { icon: <Ionicons name="document-text-outline" size={22} color="#4B5563" />, label: 'Terms & Conditions', action: () => { } },
-        { icon: <Ionicons name="headset-outline" size={22} color="#4B5563" />, label: 'Support', action: () => { } },
+        { icon: <Ionicons name="document-text-outline" size={22} color="#4B5563" />, label: 'Terms & Conditions', action: () => navigation.navigate('Terms') },
+        { icon: <Ionicons name="headset-outline" size={22} color="#4B5563" />, label: 'Support', action: () => navigation.navigate('Support') },
     ];
 
     return (
@@ -39,7 +39,7 @@ const ProfileScreen = ({ navigation }) => {
                     </View>
                     <Text style={styles.name}>Kasun Perera</Text>
                     <Text style={styles.phone}>077 123 4567</Text>
-                    <TouchableOpacity style={styles.editBtn}>
+                    <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate('EditProfile')}>
                         <Text style={styles.editBtnText}>Edit Profile</Text>
                     </TouchableOpacity>
                 </View>

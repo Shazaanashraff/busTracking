@@ -18,6 +18,16 @@ import ProfileScreen from '../screens/ProfileScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import TrackByBusScreen from '../screens/TrackByBusScreen';
 
+import SignUpScreen from '../screens/SignUpScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import SavedRoutesScreen from '../screens/SavedRoutesScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import SupportScreen from '../screens/SupportScreen';
+import TermsScreen from '../screens/TermsScreen';
+import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
+import PaymentFailureScreen from '../screens/PaymentFailureScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
+
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -37,9 +47,17 @@ const AppNavigator = () => {
         headerShown: false,
         contentStyle: { backgroundColor: '#FCD24A' }
       }}
-      initialRouteName="LanguageSelect"
+      initialRouteName="Onboarding"
     >
+      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="LanguageSelect" component={LanguageSelectScreen} />
+
+      {/* Auth */}
+      <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+
+      {/* Main */}
       <Stack.Screen name="Home" component={HomeScreen} />
 
       {/* Feature Screens */}
@@ -48,15 +66,26 @@ const AppNavigator = () => {
       <Stack.Screen name="SeatSelection" component={SeatSelectionScreen} />
       <Stack.Screen name="PassengerDetails" component={PassengerDetailsScreen} />
       <Stack.Screen name="Payment" component={PaymentScreen} />
+
+      {/* Payment Status */}
+      <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
+      <Stack.Screen name="PaymentFailure" component={PaymentFailureScreen} />
+
       <Stack.Screen name="Ticket" component={TicketScreen} />
       <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
+
+      {/* Profile & Settings */}
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="SavedRoutes" component={SavedRoutesScreen} />
+      <Stack.Screen name="Support" component={SupportScreen} />
+      <Stack.Screen name="Terms" component={TermsScreen} />
+
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="TrackByBus" component={TrackByBusScreen} />
 
       {/* Existing Screens (Recycled) */}
       <Stack.Screen name="LiveMap" component={LiveMapScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
     </Stack.Navigator>
   );
 };
