@@ -16,10 +16,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const storedToken = await AsyncStorage.getItem('token');
       const storedUser = await AsyncStorage.getItem('user');
-      
+
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+      } else {
+        // Dev: Bypass login
+        console.log('Bypassing login for development');
+        const guestUser = { _id: 'guest', name: 'Dev Guest', email: 'guest@dev.com', role: 'user' };
+        setUser(guestUser);
+        setToken('dev-token');
       }
     } catch (error) {
       console.error('Error loading auth:', error);

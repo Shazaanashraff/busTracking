@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { connectSocket, joinRoute, leaveRoute, onBusUpdate, offBusUpdate, disconnectSocket } from '../services/socket';
+
+// Conditionally import MapView to prevent crashes in Expo Go
+let MapView, Marker;
+try {
+  const Maps = require('react-native-maps');
+  MapView = Maps.default;
+  Marker = Maps.Marker;
+} catch (e) {
+  console.log('react-native-maps not available, using fallback');
+}
 
 const LiveMapScreen = ({ route }) => {
   const { routeId } = route.params;
@@ -20,7 +29,7 @@ const LiveMapScreen = ({ route }) => {
   useEffect(() => {
     // Connect to socket and join route
     const socket = connectSocket();
-    
+
     socket.on('connect', () => {
       setConnected(true);
       joinRoute(routeId);
@@ -33,7 +42,7 @@ const LiveMapScreen = ({ route }) => {
     // Listen for bus updates
     onBusUpdate((data) => {
       const { busId, lat, lng, timestamp } = data;
-      
+
       // Animate marker movement
       if (!animatedValues.current[busId]) {
         animatedValues.current[busId] = {
@@ -79,6 +88,38 @@ const LiveMapScreen = ({ route }) => {
 
   const buses = Object.values(busLocations);
 
+  // Fallback UI when MapView is not available (Expo Go)
+  const renderFallbackMap = () => (
+    <View style={styles.fallbackMap}>
+      <Text style={styles.fallbackTitle}>📍 Live Bus Locations</Text>
+      <Text style={styles.fallbackSubtitle}>
+        Map requires development build
+      </Text>
+      {buses.length > 0 ? (
+        <View style={styles.busList}>
+          {buses.map((bus) => (
+            <View key={bus.busId} style={styles.busItem}>
+              <Text style={styles.busItemIcon}>🚌</Text>
+              <View style={styles.busItemInfo}>
+                <Text style={styles.busItemId}>{bus.busId}</Text>
+                <Text style={styles.busItemCoords}>
+                  Lat: {bus.lat.toFixed(4)}, Lng: {bus.lng.toFixed(4)}
+                </Text>
+                <Text style={styles.busItemTime}>
+                  Updated: {new Date(bus.timestamp).toLocaleTimeString()}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.fallbackWaiting}>
+          Waiting for bus location updates...
+        </Text>
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -89,31 +130,34 @@ const LiveMapScreen = ({ route }) => {
         </Text>
       </View>
 
-      <MapView
-        style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        region={region}
-        onRegionChangeComplete={setRegion}
-      >
-        {buses.map((bus) => (
-          <Marker
-            key={bus.busId}
-            coordinate={{ latitude: bus.lat, longitude: bus.lng }}
-            title={bus.busId}
-            description={`Last update: ${new Date(bus.timestamp).toLocaleTimeString()}`}
-          >
-            <View style={styles.busMarker}>
-              <Text style={styles.busEmoji}>🚌</Text>
-            </View>
-          </Marker>
-        ))}
-      </MapView>
+      {MapView ? (
+        <MapView
+          style={styles.map}
+          region={region}
+          onRegionChangeComplete={setRegion}
+        >
+          {buses.map((bus) => (
+            <Marker
+              key={bus.busId}
+              coordinate={{ latitude: bus.lat, longitude: bus.lng }}
+              title={bus.busId}
+              description={`Last update: ${new Date(bus.timestamp).toLocaleTimeString()}`}
+            >
+              <View style={styles.busMarker}>
+                <Text style={styles.busEmoji}>🚌</Text>
+              </View>
+            </Marker>
+          ))}
+        </MapView>
+      ) : (
+        renderFallbackMap()
+      )}
 
       <View style={styles.footer}>
         <Text style={styles.busCount}>
           {buses.length} {buses.length === 1 ? 'bus' : 'buses'} active
         </Text>
-        {buses.length === 0 && (
+        {buses.length === 0 && MapView && (
           <Text style={styles.waitingText}>
             Waiting for bus location updates...
           </Text>
@@ -181,6 +225,62 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     fontSize: 12,
     marginTop: 4
+  },
+  // Fallback styles
+  fallbackMap: {
+    flex: 1,
+    backgroundColor: '#1e293b',
+    padding: 20,
+    alignItems: 'center'
+  },
+  fallbackTitle: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8
+  },
+  fallbackSubtitle: {
+    color: '#94a3b8',
+    fontSize: 14,
+    marginBottom: 24
+  },
+  fallbackWaiting: {
+    color: '#64748b',
+    fontSize: 14,
+    marginTop: 40
+  },
+  busList: {
+    width: '100%'
+  },
+  busItem: {
+    flexDirection: 'row',
+    backgroundColor: '#334155',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center'
+  },
+  busItemIcon: {
+    fontSize: 32,
+    marginRight: 16
+  },
+  busItemInfo: {
+    flex: 1
+  },
+  busItemId: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600'
+  },
+  busItemCoords: {
+    color: '#94a3b8',
+    fontSize: 12,
+    marginTop: 4
+  },
+  busItemTime: {
+    color: '#64748b',
+    fontSize: 11,
+    marginTop: 2
   }
 });
 
