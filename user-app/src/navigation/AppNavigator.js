@@ -4,8 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { ActivityIndicator, View } from 'react-native';
 
 import LoginScreen from '../screens/LoginScreen';
-import RouteSelectionScreen from '../screens/RouteSelectionScreen';
 import LiveMapScreen from '../screens/LiveMapScreen';
+import LanguageSelectScreen from '../screens/LanguageSelectScreen';
+import HomeScreen from '../screens/HomeScreen';
+import RouteBusesScreen from '../screens/RouteBusesScreen';
+import SearchResultsScreen from '../screens/SearchResultsScreen';
+import MyBookingsScreen from '../screens/MyBookingsScreen';
+import TrackByBusScreen from '../screens/TrackByBusScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,31 +28,23 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#2563eb' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: 'bold' }
+        headerShown: false,
+        contentStyle: { backgroundColor: '#FCD24A' }
       }}
+      initialRouteName="LanguageSelect"
     >
-      {!user ? (
-        <Stack.Screen 
-          name="Login" 
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-      ) : (
-        <>
-          <Stack.Screen 
-            name="SelectRoute" 
-            component={RouteSelectionScreen}
-            options={{ title: 'Select Route' }}
-          />
-          <Stack.Screen 
-            name="LiveMap" 
-            component={LiveMapScreen}
-            options={{ title: 'Live Bus Tracking' }}
-          />
-        </>
-      )}
+      <Stack.Screen name="LanguageSelect" component={LanguageSelectScreen} />
+      <Stack.Screen name="Home" component={HomeScreen} />
+
+      {/* Feature Screens */}
+      <Stack.Screen name="RouteBuses" component={RouteBusesScreen} />
+      <Stack.Screen name="SearchResults" component={SearchResultsScreen} />
+      <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
+      <Stack.Screen name="TrackByBus" component={TrackByBusScreen} />
+
+      {/* Existing Screens (Recycled) */}
+      <Stack.Screen name="LiveMap" component={LiveMapScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
     </Stack.Navigator>
   );
 };
