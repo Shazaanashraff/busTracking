@@ -15,9 +15,10 @@ try {
 const { width } = Dimensions.get('window');
 
 const LiveMapScreen = ({ route, navigation }) => {
-  const { routeId } = route.params;
+  const { routeId, busId: initialBusId, directTrack } = route.params;
   const [busLocations, setBusLocations] = useState({});
   const [connected, setConnected] = useState(false);
+  const [selectedBus, setSelectedBus] = useState(null); // Track selected bus for details
   const animatedValues = useRef({});
 
   // Default region (can be updated based on first bus location)
@@ -34,13 +35,46 @@ const LiveMapScreen = ({ route, navigation }) => {
 
     // Simulate bus updates
     const interval = setInterval(() => {
+      // Mock data for specific buses
       const mockBuses = [
-        { busId: 'Bus-101', lat: 28.6139 + (Math.random() * 0.002 - 0.001), lng: 77.2090 + (Math.random() * 0.002 - 0.001) },
-        { busId: 'Bus-102', lat: 28.6200 + (Math.random() * 0.002 - 0.001), lng: 77.2100 + (Math.random() * 0.002 - 0.001) },
-        { busId: 'Bus-103', lat: 28.6100 + (Math.random() * 0.002 - 0.001), lng: 77.2000 + (Math.random() * 0.002 - 0.001) }
+        {
+          busId: 'ND-4567',
+          lat: 28.6139 + (Math.random() * 0.002 - 0.001),
+          lng: 77.2090 + (Math.random() * 0.002 - 0.001),
+          speed: '45 km/h',
+          stage: 'Kiribathgoda',
+          nextStage: 'Kelaniya',
+          eta: '10 min',
+          crowd: 'medium'
+        },
+        {
+          busId: 'NC-1234',
+          lat: 28.6200 + (Math.random() * 0.002 - 0.001),
+          lng: 77.2100 + (Math.random() * 0.002 - 0.001),
+          speed: '30 km/h',
+          stage: 'Mahara',
+          nextStage: 'Ragama',
+          eta: '5 min',
+          crowd: 'low'
+        },
+        {
+          busId: 'NB-9876',
+          lat: 28.6100 + (Math.random() * 0.002 - 0.001),
+          lng: 77.2000 + (Math.random() * 0.002 - 0.001),
+          speed: '60 km/h',
+          stage: 'Kadawatha',
+          nextStage: 'Kandy Turn',
+          eta: '15 min',
+          crowd: 'high'
+        }
       ];
 
-      mockBuses.forEach(bus => {
+      // If direct tracking, filter only that bus
+      const busesToUpdate = directTrack
+        ? mockBuses.filter(b => b.busId === initialBusId)
+        : mockBuses;
+
+      busesToUpdate.forEach(bus => {
         const { busId, lat, lng } = bus;
         const timestamp = Date.now();
 
@@ -68,17 +102,26 @@ const LiveMapScreen = ({ route, navigation }) => {
 
         setBusLocations(prev => ({
           ...prev,
-          [busId]: { lat, lng, timestamp, busId }
+          [busId]: { ...bus, timestamp }
         }));
       });
 
+      // Select the first bus automatically if none selected or if direct tracking
+      if (!selectedBus && busesToUpdate.length > 0) {
+        setSelectedBus(busesToUpdate[0]);
+      } else if (selectedBus) {
+        // Update selected bus data
+        const updated = busesToUpdate.find(b => b.busId === selectedBus.busId);
+        if (updated) setSelectedBus(updated);
+      }
+
       // Center map on first update if needed
       setBusLocations(prev => {
-        if (Object.keys(prev).length === 0 && mockBuses.length > 0) {
+        if (Object.keys(prev).length === 0 && busesToUpdate.length > 0) {
           setRegion(curr => ({
             ...curr,
-            latitude: mockBuses[0].lat,
-            longitude: mockBuses[0].lng
+            latitude: busesToUpdate[0].lat,
+            longitude: busesToUpdate[0].lng
           }));
         }
         return prev;
@@ -87,34 +130,48 @@ const LiveMapScreen = ({ route, navigation }) => {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [routeId]);
+  }, [routeId, directTrack, initialBusId, selectedBus]);
 
   const buses = Object.values(busLocations);
+  const activeBus = selectedBus || buses[0];
+
+  const getCrowdColor = (level) => {
+    switch (level) {
+      case 'low': return '#22C55E';
+      case 'medium': return '#EAB308';
+      case 'high': return '#EF4444';
+      default: return '#6B7280';
+    }
+  };
 
   // Fallback UI when MapView is not available (Expo Go)
   const renderFallbackMap = () => (
     <View style={styles.fallbackMap}>
-      <Text style={styles.fallbackTitle}>📍 Tracking {buses.length} Buses</Text>
+      <Text style={styles.fallbackTitle}>📍 Tracking {directTrack ? activeBus?.busId : `${buses.length} Buses`}</Text>
       <Text style={styles.fallbackSubtitle}>
         Map view requires a development build.
       </Text>
       {buses.length > 0 ? (
         <View style={styles.busList}>
           {buses.map((bus) => (
-            <View key={bus.busId} style={styles.busItem}>
+            <TouchableOpacity
+              key={bus.busId}
+              style={[styles.busItem, selectedBus?.busId === bus.busId && styles.selectedBusItem]}
+              onPress={() => setSelectedBus(bus)}
+            >
               <View style={styles.busItemIconContainer}>
                 <Text style={styles.busItemIcon}>🚌</Text>
               </View>
               <View style={styles.busItemInfo}>
                 <Text style={styles.busItemId}>{bus.busId}</Text>
-                <Text style={styles.busItemCoords}>
-                  Inside City Limits
-                </Text>
+                <Text style={styles.busItemStage}>Current: {bus.stage}</Text>
                 <View style={styles.statusBadge}>
-                  <Text style={styles.statusBadgeText}>Active</Text>
+                  <Text style={[styles.statusBadgeText, { color: getCrowdColor(bus.crowd) }]}>
+                    {bus.crowd?.toUpperCase()} CROWD
+                  </Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       ) : (
@@ -135,13 +192,15 @@ const LiveMapScreen = ({ route, navigation }) => {
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{routeId || 'Live Map'}</Text>
+          <Text style={styles.headerTitle}>{directTrack ? initialBusId : `Route ${routeId}`}</Text>
           <View style={styles.liveBadge}>
             <View style={[styles.statusDot, connected && styles.statusConnected]} />
-            <Text style={styles.statusText}>{connected ? 'LIVE' : 'CONNECTING'}</Text>
+            <Text style={styles.statusText}>{connected ? 'LIVE TRACKING' : 'CONNECTING'}</Text>
           </View>
         </View>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity style={styles.backButton} onPress={() => { }}>
+          <Text style={styles.backIcon}>🔔</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.mapContainer}>
@@ -163,12 +222,13 @@ const LiveMapScreen = ({ route, navigation }) => {
                 key={bus.busId}
                 coordinate={{ latitude: bus.lat, longitude: bus.lng }}
                 title={bus.busId}
+                onPress={() => setSelectedBus(bus)}
               >
                 <View style={styles.markerContainer}>
-                  <View style={styles.markerPin}>
+                  <View style={[styles.markerPin, selectedBus?.busId === bus.busId && styles.selectedMarker]}>
                     <Text style={styles.markerIcon}>🚌</Text>
                   </View>
-                  <View style={styles.markerSeeThrough} />
+                  <View style={styles.markerArrow} />
                 </View>
               </Marker>
             ))}
@@ -178,32 +238,50 @@ const LiveMapScreen = ({ route, navigation }) => {
         )}
       </View>
 
-      {/* Floating Bottom Card */}
-      <View style={styles.bottomSheet}>
-        <View style={styles.handle} />
-        <Text style={styles.sheetTitle}>Trip Details</Text>
+      {/* Sri Lankan Style Bottom Sheet */}
+      {activeBus && (
+        <View style={styles.bottomSheet}>
+          <View style={styles.handle} />
 
-        <View style={styles.statRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Active Buses</Text>
-            <Text style={styles.statValue}>{buses.length}</Text>
+          <View style={styles.sheetHeader}>
+            <View>
+              <Text style={styles.sheetTitle}>{activeBus.busId}</Text>
+              <Text style={styles.sheetSubtitle}>Route {routeId} • Normal Service</Text>
+            </View>
+            <View style={styles.speedBadge}>
+              <Text style={styles.speedText}>{activeBus.speed}</Text>
+            </View>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Est. Arrival</Text>
-            <Text style={styles.statValue}>5 min</Text>
+
+          <View style={styles.infoGrid}>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Current Stage</Text>
+              <Text style={styles.infoValue}>{activeBus.stage}</Text>
+            </View>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Next Stage</Text>
+              <Text style={styles.infoValue}>{activeBus.nextStage}</Text>
+              <Text style={styles.etaValue}>~ {activeBus.eta}</Text>
+            </View>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Distance</Text>
-            <Text style={styles.statValue}>1.2 km</Text>
+
+          <View style={styles.crowdBar}>
+            <Text style={styles.crowdLabel}>Crowd Level</Text>
+            <View style={styles.crowdIndicators}>
+              <View style={[styles.crowdDotIndicator, { backgroundColor: getCrowdColor('low'), opacity: activeBus.crowd === 'low' ? 1 : 0.3 }]} />
+              <View style={[styles.crowdDotIndicator, { backgroundColor: getCrowdColor('medium'), opacity: activeBus.crowd === 'medium' ? 1 : 0.3 }]} />
+              <View style={[styles.crowdDotIndicator, { backgroundColor: getCrowdColor('high'), opacity: activeBus.crowd === 'high' ? 1 : 0.3 }]} />
+            </View>
+            <Text style={[styles.crowdText, { color: getCrowdColor(activeBus.crowd) }]}>
+              {activeBus.crowd?.toUpperCase()}
+            </Text>
           </View>
+
+          <TouchableOpacity style={styles.actionButton}>
+            <Text style={styles.actionButtonText}>Get Off Alerts 🔔</Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>Refresh Data</Text>
-        </TouchableOpacity>
-      </View>
+      )}
     </View>
   );
 };
@@ -245,7 +323,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1F2937',
   },
   liveBadge: {
@@ -301,8 +379,26 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  selectedMarker: {
+    backgroundColor: '#1F2937',
+    borderColor: '#FCD24A',
+    transform: [{ scale: 1.1 }],
+  },
   markerIcon: {
     fontSize: 20,
+  },
+  markerArrow: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#FFF',
+    marginTop: -2,
   },
   // Fallback styles
   fallbackMap: {
@@ -338,6 +434,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 2,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedBusItem: {
+    borderColor: '#FCD24A',
+    backgroundColor: '#FFFBEB',
   },
   busItemIconContainer: {
     width: 48,
@@ -359,16 +461,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1F2937',
   },
-  busItemCoords: {
+  busItemStage: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#4B5563',
     marginTop: 2,
+    fontWeight: '500',
   },
   statusBadge: {
     position: 'absolute',
     right: 0,
     top: 0,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: '#F3F4F6',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -376,7 +479,11 @@ const styles = StyleSheet.create({
   statusBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#059669',
+  },
+  fallbackWaiting: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 20,
   },
   // Bottom Sheet Style
   bottomSheet: {
@@ -402,37 +509,91 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 20,
   },
-  sheetTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1F2937',
-    marginBottom: 20,
-  },
-  statRow: {
+  sheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  statItem: {
     alignItems: 'center',
-    flex: 1,
+    marginBottom: 20,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 18,
+  sheetTitle: {
+    fontSize: 24,
     fontWeight: '800',
     color: '#1F2937',
   },
-  statDivider: {
-    width: 1,
-    height: '80%',
-    backgroundColor: '#E5E7EB',
-    alignSelf: 'center',
+  sheetSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  speedBadge: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  speedText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2563EB',
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  infoCard: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 12,
+  },
+  infoLabel: {
+    fontSize: 10,
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  etaValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#059669',
+    marginTop: 2,
+  },
+  crowdBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 12,
+  },
+  crowdLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  crowdIndicators: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  crowdDotIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  crowdText: {
+    fontSize: 12,
+    fontWeight: '800',
+    width: 60,
+    textAlign: 'right',
   },
   actionButton: {
     backgroundColor: '#1F2937',
