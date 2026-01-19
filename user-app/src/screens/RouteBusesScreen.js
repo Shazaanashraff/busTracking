@@ -1,258 +1,176 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 
-const RouteBusesScreen = ({ navigation, route }) => {
-    const { route: routeNumber } = route.params; // e.g. "138"
-    const [buses, setBuses] = useState([]);
+const RouteBusesScreen = ({ route, navigation }) => {
+    const { route: routeNumber } = route.params;
     const [loading, setLoading] = useState(true);
+    const [buses, setBuses] = useState([]);
 
     useEffect(() => {
-        // Mock fetch buses for route
+        // Mock API call simulation
         setTimeout(() => {
             setBuses([
-                { id: '1', plate: 'ND-4567', distance: '1.2 km away', crowd: 'medium', eta: '5 min', type: 'Normal' },
-                { id: '2', plate: 'NC-1234', distance: '3.5 km away', crowd: 'low', eta: '12 min', type: 'AC' },
-                { id: '3', plate: 'NB-9876', distance: '5.0 km away', crowd: 'high', eta: '20 min', type: 'Normal' },
-                { id: '4', plate: 'ND-1111', distance: '8.2 km away', crowd: 'medium', eta: '35 min', type: 'Luxury' }
+                { id: '1', plate: 'ND-4567', distance: '1.2 km away', time: '5 mins', crowd: 'High', type: 'Normal' },
+                { id: '2', plate: 'NC-1234', distance: '3.5 km away', time: '12 mins', crowd: 'Medium', type: 'Semi-Luxury' },
+                { id: '3', plate: 'NB-9900', distance: '8.0 km away', time: '25 mins', crowd: 'Low', type: 'AC' },
             ]);
             setLoading(false);
-        }, 1000);
+        }, 1500);
     }, []);
 
     const getCrowdColor = (level) => {
         switch (level) {
-            case 'low': return '#22C55E'; // Green
-            case 'medium': return '#EAB308'; // Yellow
-            case 'high': return '#EF4444'; // Red
-            default: return '#9CA3AF';
+            case 'Low': return '#059669';
+            case 'Medium': return '#D97706';
+            case 'High': return '#DC2626';
+            default: return '#6B7280';
         }
     };
 
-    const renderBus = ({ item }) => (
+    const renderBusItem = ({ item }) => (
         <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <View style={styles.busIconBadge}>
-                    <Text style={styles.busIcon}>🚌</Text>
+            <View style={styles.cardLeft}>
+                <View style={styles.iconBox}>
+                    <Ionicons name="bus" size={24} color="#1F2937" />
                 </View>
-                <View style={styles.headerInfo}>
+                <View>
                     <Text style={styles.plateNumber}>{item.plate}</Text>
-                    <Text style={styles.routeBadge}>Route {routeNumber}</Text>
-                </View>
-                <View style={styles.etaContainer}>
-                    <Text style={styles.etaText}>{item.eta}</Text>
-                    <Text style={styles.etaLabel}>ETA</Text>
-                </View>
-            </View>
-
-            <View style={styles.cardBody}>
-                <View style={styles.statRow}>
-                    <Text style={styles.statLabel}>Distance</Text>
-                    <Text style={styles.statValue}>{item.distance}</Text>
-                </View>
-                <View style={styles.statRow}>
-                    <Text style={styles.statLabel}>Type</Text>
-                    <Text style={styles.statValue}>{item.type}</Text>
-                </View>
-                <View style={styles.statRow}>
-                    <Text style={styles.statLabel}>Crowd</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={[styles.crowdDot, { backgroundColor: getCrowdColor(item.crowd) }]} />
-                        <Text style={[styles.statValue, { textTransform: 'capitalize' }]}>{item.crowd}</Text>
+                    <View style={styles.badgeRow}>
+                        <View style={[styles.badge, { backgroundColor: '#F3F4F6' }]}>
+                            <Text style={styles.badgeText}>{item.type}</Text>
+                        </View>
+                        <View style={[styles.badge, { backgroundColor: '#FEF2F2' }]}>
+                            <Text style={[styles.badgeText, { color: getCrowdColor(item.crowd) }]}>{item.crowd} Crowd</Text>
+                        </View>
                     </View>
                 </View>
             </View>
 
-            <View style={styles.actionRow}>
+            <View style={styles.cardRight}>
+                <Text style={styles.etaTime}>{item.time}</Text>
+                <Text style={styles.distance}>{item.distance}</Text>
                 <TouchableOpacity
                     style={styles.trackButton}
-                    onPress={() => navigation.navigate('LiveMap', { routeId: routeNumber, busId: item.plate })}
+                    onPress={() => navigation.navigate('LiveMap', { routeId: routeNumber, busId: item.plate, directTrack: true })}
                 >
-                    <Text style={styles.trackButtonText}>📍 Track</Text>
+                    <Text style={styles.trackButtonText}>Track</Text>
+                    <Feather name="navigation" size={14} color="#FFF" />
                 </TouchableOpacity>
-
-                {(item.type === 'Luxury' || item.type === 'AC') && (
-                    <TouchableOpacity
-                        style={styles.bookButton}
-                        onPress={() => navigation.navigate('SeatSelection', { bus: item })}
-                    >
-                        <Text style={styles.bookButtonText}>🎟️ Book</Text>
-                    </TouchableOpacity>
-                )}
             </View>
         </View>
     );
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FCD24A" />
+            <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
 
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Text style={styles.backIcon}>←</Text>
+                    <Feather name="arrow-left" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.screenTitle}>Route {routeNumber}</Text>
+                <View>
+                    <Text style={styles.headerTitle}>Route {routeNumber}</Text>
+                    <Text style={styles.headerSubtitle}>Live Buses Available</Text>
+                </View>
                 <View style={{ width: 40 }} />
             </View>
 
+            {/* Content */}
             <View style={styles.content}>
-                <View style={styles.filterRow}>
-                    <Text style={styles.resultCount}>{buses.length} Buses Live</Text>
-                    <TouchableOpacity><Text style={styles.filterText}>Filter 🔽</Text></TouchableOpacity>
-                </View>
-
-                <FlatList
-                    data={buses}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderBus}
-                    contentContainerStyle={styles.list}
-                    showsVerticalScrollIndicator={false}
-                />
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#1F2937" />
+                        <Text style={styles.loadingText}>Locating buses...</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={buses}
+                        renderItem={renderBusItem}
+                        keyExtractor={item => item.id}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.listContent}
+                        ListEmptyComponent={
+                            <View style={styles.emptyState}>
+                                <Feather name="slash" size={40} color="#9CA3AF" />
+                                <Text style={styles.emptyText}>No live buses found on this route.</Text>
+                            </View>
+                        }
+                    />
+                )}
             </View>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#FCD24A',
-    },
+    container: { flex: 1, backgroundColor: '#F3F4F6' },
     header: {
-        paddingTop: 50,
-        paddingBottom: 20,
+        paddingTop: 60,
+        paddingBottom: 24,
         paddingHorizontal: 24,
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
+        justifyContent: 'space-between',
     },
     backButton: {
         width: 40,
         height: 40,
-        backgroundColor: 'rgba(255,255,255,0.3)',
+        backgroundColor: '#FFF',
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        elevation: 1,
     },
-    backIcon: { fontSize: 24, color: '#1F2937' },
-    screenTitle: {
-        fontSize: 20,
-        fontWeight: '800',
-        color: '#1F2937',
-    },
-    content: {
-        flex: 1,
-        backgroundColor: '#F3F4F6',
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
-        paddingHorizontal: 20,
-        paddingTop: 24,
-    },
-    filterRow: {
+    headerTitle: { fontSize: 20, fontWeight: '800', color: '#1F2937', textAlign: 'center' },
+    headerSubtitle: { fontSize: 12, color: '#6B7280', textAlign: 'center' },
+    content: { flex: 1, paddingHorizontal: 24 },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    loadingText: { marginTop: 16, color: '#6B7280', fontSize: 14 },
+    listContent: { paddingBottom: 40 },
+    card: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 16,
-        paddingHorizontal: 4,
-    },
-    resultCount: {
-        fontWeight: '700',
-        color: '#374151',
-    },
-    filterText: {
-        color: '#2563EB',
-        fontWeight: '600',
-    },
-    list: { paddingBottom: 40 },
-    card: {
         backgroundColor: '#FFF',
-        borderRadius: 20,
+        borderRadius: 24,
         padding: 16,
         marginBottom: 16,
         shadowColor: '#000',
-        shadowOpacity: 0.05,
-        elevation: 3,
+        shadowOpacity: 0.03,
+        elevation: 2,
     },
-    cardHeader: {
-        flexDirection: 'row',
-        marginBottom: 16,
-    },
-    busIconBadge: {
+    cardLeft: { flexDirection: 'row', gap: 16, flex: 1 },
+    iconBox: {
         width: 48,
         height: 48,
-        backgroundColor: '#FEF3C7',
-        borderRadius: 14,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
     },
-    busIcon: { fontSize: 24 },
-    headerInfo: { flex: 1 },
-    plateNumber: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: '#1F2937',
-    },
-    routeBadge: {
-        fontSize: 12,
-        color: '#6B7280',
-        backgroundColor: '#F3F4F6',
-        alignSelf: 'flex-start',
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 6,
+    plateNumber: { fontSize: 18, fontWeight: '800', color: '#1F2937' },
+    badgeRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
+    badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+    badgeText: { fontSize: 10, fontWeight: '700', color: '#374151' },
+    cardRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
+    etaTime: { fontSize: 16, fontWeight: '700', color: '#059669' },
+    distance: { fontSize: 12, color: '#9CA3AF' },
+    trackButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1F2937',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 10,
+        gap: 4,
         marginTop: 4,
     },
-    etaContainer: {
-        alignItems: 'flex-end',
-    },
-    etaText: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: '#059669',
-    },
-    etaLabel: {
-        fontSize: 10,
-        color: '#6B7280',
-        fontWeight: '700',
-    },
-    cardBody: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: '#F9FAFB',
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 16,
-    },
-    statRow: { alignItems: 'center' },
-    statLabel: { fontSize: 10, color: '#9CA3AF', marginBottom: 2 },
-    statValue: { fontSize: 14, fontWeight: '700', color: '#1F2937' },
-    crowdDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
-    actionRow: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    trackButton: {
-        flex: 1,
-        backgroundColor: '#F3F4F6',
-        paddingVertical: 12,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    trackButtonText: {
-        fontWeight: '700',
-        color: '#1F2937',
-    },
-    bookButton: {
-        flex: 1,
-        backgroundColor: '#1F2937',
-        paddingVertical: 12,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    bookButtonText: {
-        fontWeight: '700',
-        color: '#FFF',
-    },
+    trackButtonText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+    emptyState: { alignItems: 'center', marginTop: 100, gap: 16 },
+    emptyText: { color: '#6B7280', fontSize: 16 },
 });
 
 export default RouteBusesScreen;

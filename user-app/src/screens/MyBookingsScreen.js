@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
 
 const MyBookingsScreen = ({ navigation }) => {
     const [activeTab, setActiveTab] = useState('upcoming');
@@ -49,6 +50,7 @@ const MyBookingsScreen = ({ navigation }) => {
     const renderBooking = ({ item }) => (
         <TouchableOpacity
             style={styles.card}
+            activeOpacity={0.9}
             onPress={() => navigation.navigate('Ticket', {
                 bus: { operator: item.operator, plate: item.plate, routeNo: '01', depTime: item.depTime },
                 seats: item.seats,
@@ -57,7 +59,10 @@ const MyBookingsScreen = ({ navigation }) => {
             })}
         >
             <View style={styles.cardHeader}>
-                <Text style={styles.dateText}>{item.date} • {item.time}</Text>
+                <View style={styles.dateBadge}>
+                    <Feather name="calendar" size={12} color="#4B5563" />
+                    <Text style={styles.dateText}>{item.date}</Text>
+                </View>
                 <View style={[styles.statusBadge, item.status === 'completed' ? styles.completedBadge : styles.confirmedBadge]}>
                     <Text style={[styles.statusText, item.status === 'completed' ? styles.completedText : styles.confirmedText]}>
                         {item.status.toUpperCase()}
@@ -66,10 +71,15 @@ const MyBookingsScreen = ({ navigation }) => {
             </View>
 
             <Text style={styles.routeText}>{item.route}</Text>
-            <Text style={styles.detailsText}>{item.operator} • {item.plate}</Text>
+            <View style={styles.infoRow}>
+                <Text style={styles.detailsText}>{item.operator}</Text>
+                <Text style={styles.dot}>•</Text>
+                <Text style={styles.detailsText}>{item.plate}</Text>
+                <Text style={styles.dot}>•</Text>
+                <Text style={styles.detailsText}>{item.time}</Text>
+            </View>
 
             <View style={styles.cardFooter}>
-                {/* Upcoming Actions */}
                 {activeTab === 'upcoming' ? (
                     <View style={styles.actionRow}>
                         <TouchableOpacity
@@ -82,16 +92,17 @@ const MyBookingsScreen = ({ navigation }) => {
                             style={styles.trackBtn}
                             onPress={() => navigation.navigate('LiveMap', { routeId: '01', busId: item.plate, directTrack: true })}
                         >
-                            <Text style={styles.trackText}>Track Bus 📍</Text>
+                            <Feather name="navigation" size={14} color="#059669" style={{ marginRight: 6 }} />
+                            <Text style={styles.trackText}>Track Bus</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
-                    /* History Actions */
                     <View style={styles.historyFooter}>
                         <Text style={styles.seatsText}>Seats: {item.seats.join(', ').replace(/R-|L-/g, '')}</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Ticket', { bus: item, seats: item.seats, passenger: {}, totalAmount: item.amount })}>
-                            <Text style={styles.viewTicketText}>View Ticket →</Text>
-                        </TouchableOpacity>
+                        <View style={styles.viewTicketBtn}>
+                            <Text style={styles.viewTicketText}>View Ticket</Text>
+                            <Feather name="chevron-right" size={14} color="#2563EB" />
+                        </View>
                     </View>
                 )}
             </View>
@@ -100,11 +111,11 @@ const MyBookingsScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FCD24A" />
+            <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
 
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.backButton}>
-                    <Text style={styles.backIcon}>←</Text>
+                    <Feather name="arrow-left" size={24} color="#1F2937" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>My Bookings</Text>
                 <View style={{ width: 40 }} />
@@ -134,7 +145,7 @@ const MyBookingsScreen = ({ navigation }) => {
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
                         <View style={styles.emptyState}>
-                            <Text style={{ fontSize: 40, marginBottom: 10 }}>🎫</Text>
+                            <Ionicons name="ticket-outline" size={64} color="#D1D5DB" />
                             <Text style={styles.emptyText}>No bookings found</Text>
                         </View>
                     }
@@ -145,9 +156,9 @@ const MyBookingsScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FCD24A' },
+    container: { flex: 1, backgroundColor: '#F3F4F6' },
     header: {
-        paddingTop: 50,
+        paddingTop: 60,
         paddingBottom: 20,
         paddingHorizontal: 24,
         flexDirection: 'row',
@@ -157,19 +168,19 @@ const styles = StyleSheet.create({
     backButton: {
         width: 40,
         height: 40,
-        backgroundColor: 'rgba(255,255,255,0.3)',
+        backgroundColor: '#FFF',
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        elevation: 1,
     },
-    backIcon: { fontSize: 24, color: '#1F2937' },
     headerTitle: { fontSize: 20, fontWeight: '800', color: '#1F2937' },
     content: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
-        padding: 24,
+        paddingHorizontal: 24,
+        paddingTop: 16,
     },
     tabs: {
         flexDirection: 'row',
@@ -185,26 +196,36 @@ const styles = StyleSheet.create({
     list: { paddingBottom: 20 },
     card: {
         backgroundColor: '#FFF',
-        borderRadius: 16,
-        padding: 16,
+        borderRadius: 24,
+        padding: 20,
         marginBottom: 16,
         shadowColor: '#000',
-        shadowOpacity: 0.05,
-        elevation: 2,
+        shadowOpacity: 0.03,
+        elevation: 4,
     },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-    dateText: { fontSize: 12, fontWeight: '700', color: '#6B7280' },
-    statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+    dateBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: '#F9FAFB',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    dateText: { fontSize: 12, fontWeight: '600', color: '#4B5563' },
+    statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
     confirmedBadge: { backgroundColor: '#ECFDF5' },
     completedBadge: { backgroundColor: '#F3F4F6' },
     statusText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
     confirmedText: { color: '#059669' },
     completedText: { color: '#6B7280' },
-    routeText: { fontSize: 16, fontWeight: '800', color: '#1F2937', marginBottom: 4 },
-    detailsText: { fontSize: 12, color: '#4B5563', marginBottom: 12 },
+    routeText: { fontSize: 18, fontWeight: '800', color: '#1F2937', marginBottom: 4 },
+    infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
+    detailsText: { fontSize: 12, color: '#6B7280', fontWeight: '500' },
+    dot: { color: '#D1D5DB', fontSize: 10 },
     cardFooter: {
-        marginTop: 12,
-        paddingTop: 12,
+        paddingTop: 16,
         borderTopWidth: 1,
         borderTopColor: '#F3F4F6',
     },
@@ -215,35 +236,30 @@ const styles = StyleSheet.create({
     },
     cancelBtn: {
         paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
+        paddingVertical: 10,
+        borderRadius: 12,
         backgroundColor: '#FEF2F2',
     },
-    cancelText: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#EF4444',
-    },
+    cancelText: { fontSize: 12, fontWeight: '700', color: '#EF4444' },
     trackBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
+        paddingVertical: 10,
+        borderRadius: 12,
         backgroundColor: '#ECFDF5',
     },
-    trackText: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#059669',
-    },
+    trackText: { fontSize: 12, fontWeight: '700', color: '#059669' },
     historyFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
     seatsText: { fontSize: 12, fontWeight: '600', color: '#374151' },
+    viewTicketBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     viewTicketText: { fontSize: 12, fontWeight: '700', color: '#2563EB' },
-    emptyState: { alignItems: 'center', marginTop: 50 },
-    emptyText: { color: '#9CA3AF', fontWeight: '600' }
+    emptyState: { alignItems: 'center', marginTop: 100, gap: 16 },
+    emptyText: { color: '#9CA3AF', fontWeight: '600', fontSize: 16 },
 });
 
 export default MyBookingsScreen;
