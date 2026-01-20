@@ -7,6 +7,9 @@ import LoginScreen from '../screens/LoginScreen';
 import DriverNavigator from './DriverNavigator';
 import OwnerNavigator from './OwnerNavigator';
 import QRScannerScreen from '../screens/QRScannerScreen';
+import BusDetailsScreen from '../screens/BusDetailsScreen';
+import DriverManagementScreen from '../screens/DriverManagementScreen';
+import ReportsScreen from '../screens/ReportsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,11 +39,28 @@ const AppNavigator = () => {
           options={{ headerShown: false }}
         />
       ) : user.role === 'owner' ? (
-        <Stack.Screen
-          name="OwnerApp"
-          component={OwnerNavigator}
-          options={{ headerShown: false }}
-        />
+        <>
+          <Stack.Screen
+            name="OwnerApp"
+            component={OwnerNavigator}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BusDetails"
+            component={BusDetailsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="DriverManagement"
+            component={DriverManagementScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Reports"
+            component={ReportsScreen}
+            options={{ headerShown: false }}
+          />
+        </>
       ) : (
         <Stack.Screen
           name="DriverApp"
