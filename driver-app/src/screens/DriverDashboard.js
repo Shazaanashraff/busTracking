@@ -8,13 +8,17 @@ import {
   ScrollView,
   StatusBar,
   RefreshControl,
-  SafeAreaView
+  SafeAreaView,
+  Dimensions
 } from 'react-native';
 import * as Location from 'expo-location';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { connectSocket, emitLocation, stopTracking, disconnectSocket } from '../services/socket';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
+const BRAND_GREEN = '#10B981';
 
 const DriverDashboard = ({ navigation }) => {
   const { user, token, logout } = useAuth();
@@ -48,12 +52,10 @@ const DriverDashboard = ({ navigation }) => {
     try {
       const busData = await api.getMyBus(token);
       setBus(busData);
-
       const dashboardStats = await api.getDashboardStats(token);
       setStats(dashboardStats);
     } catch (error) {
       console.log('Error loading data:', error);
-      // Alert.alert('Info', 'Could not load updated stats.');
     } finally {
       setRefreshing(false);
     }
@@ -64,15 +66,12 @@ const DriverDashboard = ({ navigation }) => {
       Alert.alert('Error', 'No bus assigned to you');
       return;
     }
-
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission Denied', 'Location permission is required');
       return;
     }
-
     setIsTracking(true);
-
     locationSubscription.current = await Location.watchPositionAsync(
       {
         accuracy: Location.Accuracy.High,
@@ -101,164 +100,170 @@ const DriverDashboard = ({ navigation }) => {
 
   const handleUpdateCrowd = async (level) => {
     setCrowdLevel(level);
-    // await api.updateCrowdLevel(token, level); // Optimistic update
   };
 
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
+    Alert.alert("Logout", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout", onPress: () => {
-          handleStopTracking();
-          logout();
-        }
-      }
+      { text: "Logout", onPress: () => { handleStopTracking(); logout(); } }
     ]);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerGreeting}>Welcome,</Text>
-          <Text style={styles.headerName}>{user?.name || 'Driver'}</Text>
+          <Text style={styles.greeting}>Good Morning,</Text>
+          <Text style={styles.nameHeader}>{user?.name || 'Driver'}</Text>
         </View>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#EF4444" />
+          <Feather name="power" size={20} color="#EF4444" />
         </TouchableOpacity>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} tintColor="#FFF" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadData} tintColor={BRAND_GREEN} />}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Bus Info Card */}
+
+        {/* BUS CARD */}
         <View style={styles.busCard}>
-          <View style={styles.busIconCircle}>
-            <Ionicons name="bus" size={28} color="#1e3a8a" />
+          <View style={styles.busCardLeft}>
+            <View style={styles.busIconCircle}>
+              <MaterialCommunityIcons name="bus-side" size={24} color="#FFFFFF" />
+            </View>
           </View>
-          <View style={styles.busCardContent}>
+          <View style={styles.busCardRight}>
             {bus ? (
               <>
-                <Text style={styles.busRoute}>Route {bus.routeId}</Text>
                 <Text style={styles.busPlate}>{bus.busName}</Text>
-                <View style={styles.busRouteRow}>
-                  <Text style={styles.routeText}>{bus.routeStart}</Text>
-                  <Ionicons name="arrow-forward" size={14} color="#64748b" />
-                  <Text style={styles.routeText}>{bus.routeEnd}</Text>
+                <Text style={styles.busRoute}>Route {bus.routeId}</Text>
+                <View style={styles.routeRow}>
+                  <Text style={styles.routeLoc}>{bus.routeStart}</Text>
+                  <Feather name="arrow-right" size={14} color="#9CA3AF" />
+                  <Text style={styles.routeLoc}>{bus.routeEnd}</Text>
                 </View>
               </>
             ) : (
-              <Text style={styles.noBusText}>No bus assigned</Text>
+              <Text style={styles.noBusText}>No Bus Assigned</Text>
             )}
           </View>
         </View>
 
-        {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Today's Trips</Text>
-            <Text style={styles.statValue}>{stats.tripsToday}</Text>
-            <MaterialCommunityIcons name="steering" size={20} color="#3b82f6" style={styles.statIcon} />
+        {/* METRICS ROW */}
+        <View style={styles.metricsContainer}>
+          <View style={styles.metricItem}>
+            <Text style={styles.metricValue}>{stats.tripsToday}</Text>
+            <Text style={styles.metricLabel}>Trips</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Bookings</Text>
-            <Text style={styles.statValue}>{stats.bookings}</Text>
-            <Ionicons name="ticket-outline" size={20} color="#8b5cf6" style={styles.statIcon} />
+          <View style={styles.verticalDivider} />
+          <View style={styles.metricItem}>
+            <Text style={styles.metricValue}>{stats.bookings}</Text>
+            <Text style={styles.metricLabel}>Bookings</Text>
           </View>
-          <View style={[styles.statCard, { flexBasis: '100%' }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View>
-                <Text style={styles.statLabel}>Total Passengers</Text>
-                <Text style={styles.statValue}>{stats.totalPassengers}</Text>
-              </View>
-              <Ionicons name="people-outline" size={32} color="#10b981" style={{ opacity: 0.8 }} />
-            </View>
+          <View style={styles.verticalDivider} />
+          <View style={styles.metricItem}>
+            <Text style={styles.metricValue}>{stats.totalPassengers}</Text>
+            <Text style={styles.metricLabel}>Passengers</Text>
           </View>
         </View>
 
-        {/* Seat Numbers */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Booked Seats</Text>
-          <Text style={styles.countBadge}>{stats.bookedSeats.length}</Text>
+        {/* ACTION GRID */}
+        <Text style={styles.sectionTitle}>Main Actions</Text>
+        <View style={styles.actionGrid}>
+          <TouchableOpacity
+            style={[styles.actionCard, { backgroundColor: '#111827' }]} // Black like FareGO button
+            onPress={() => navigation.navigate('QRScanner')}
+          >
+            <MaterialCommunityIcons name="qrcode-scan" size={28} color="#FFF" />
+            <Text style={[styles.actionText, { color: '#FFF' }]}>Scan Ticket</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate('TripHistory')} // Assuming this exists or placeholder
+          >
+            <Feather name="list" size={28} color="#111827" />
+            <Text style={styles.actionText}>Trip List</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* SEATS SECTION */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Booked Seats</Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{stats.bookedSeats.length}</Text>
+          </View>
+        </View>
+
         <View style={styles.seatsContainer}>
           {stats.bookedSeats.length > 0 ? (
-            stats.bookedSeats.map((seat, index) => (
-              <View key={index} style={styles.seatBadge}>
+            stats.bookedSeats.map((seat, i) => (
+              <View key={i} style={styles.seatBadge}>
                 <Text style={styles.seatText}>{seat}</Text>
               </View>
             ))
           ) : (
-            <Text style={styles.noDataText}>No seats booked yet.</Text>
+            <Text style={styles.emptyStateText}>No active bookings</Text>
           )}
         </View>
 
-        {/* Ticket Scanner */}
-        <TouchableOpacity
-          style={styles.scanBtn}
-          onPress={() => navigation.navigate('QRScanner')}
-          activeOpacity={0.9}
-        >
-          <Ionicons name="qr-code-outline" size={24} color="#FFF" />
-          <Text style={styles.scanBtnText}>Scan Ticket QR</Text>
-        </TouchableOpacity>
+        {/* CROWD LEVEL */}
+        <Text style={styles.sectionTitle}>Current Crowd</Text>
+        <View style={styles.crowdRow}>
+          {['Low', 'Medium', 'High'].map((level) => {
+            const isActive = crowdLevel === level;
+            let color = '#10B981'; // Green
+            if (level === 'Medium') color = '#F59E0B';
+            if (level === 'High') color = '#EF4444';
 
-
-        {/* Crowd Level Control */}
-        <Text style={styles.sectionTitle}>Update Crowd Level</Text>
-        <View style={styles.crowdControl}>
-          <TouchableOpacity
-            style={[styles.crowdBtn, crowdLevel === 'Low' && styles.crowdBtnActive, { borderColor: '#22c55e' }]}
-            onPress={() => handleUpdateCrowd('Low')}
-          >
-            <View style={[styles.dot, { backgroundColor: '#22c55e' }]} />
-            <Text style={[styles.crowdBtnText, crowdLevel === 'Low' && styles.crowdBtnTextActive]}>Low</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.crowdBtn, crowdLevel === 'Medium' && styles.crowdBtnActive, { borderColor: '#eab308' }]}
-            onPress={() => handleUpdateCrowd('Medium')}
-          >
-            <View style={[styles.dot, { backgroundColor: '#eab308' }]} />
-            <Text style={[styles.crowdBtnText, crowdLevel === 'Medium' && styles.crowdBtnTextActive]}>Med</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.crowdBtn, crowdLevel === 'High' && styles.crowdBtnActive, { borderColor: '#ef4444' }]}
-            onPress={() => handleUpdateCrowd('High')}
-          >
-            <View style={[styles.dot, { backgroundColor: '#ef4444' }]} />
-            <Text style={[styles.crowdBtnText, crowdLevel === 'High' && styles.crowdBtnTextActive]}>High</Text>
-          </TouchableOpacity>
-        </View>
-
-
-        {/* Tracking Control (Moved to bottom for easy access) */}
-        <View style={styles.trackerContainer}>
-          {isTracking ? (
-            <View style={styles.trackingActiveBox}>
-              <Text style={styles.trackingStatusText}>Tracking is Active</Text>
-              <TouchableOpacity style={styles.stopTrackingBtn} onPress={handleStopTracking}>
-                <Text style={styles.stopTrackingText}>Stop Tracking</Text>
+            return (
+              <TouchableOpacity
+                key={level}
+                style={[
+                  styles.crowdPill,
+                  isActive && { backgroundColor: color, borderColor: color }
+                ]}
+                onPress={() => handleUpdateCrowd(level)}
+              >
+                <Text style={[
+                  styles.crowdText,
+                  isActive ? { color: '#FFF' } : { color: '#6B7280' }
+                ]}>
+                  {level}
+                </Text>
               </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={[styles.startTrackingBtn, !bus && { opacity: 0.5 }]}
-              onPress={startTracking}
-              disabled={!bus}
-            >
-              <Ionicons name="navigate-circle-outline" size={28} color="#FFF" />
-              <Text style={styles.startTrackingText}>Start Journey & Track</Text>
-            </TouchableOpacity>
-          )}
+            );
+          })}
         </View>
+
+        <View style={{ height: 100 }} /> {/* Spacing for floating button */}
 
       </ScrollView>
+
+      {/* FLOATING ACTION BUTTON FOR TRACKING */}
+      <View style={styles.floatContainer}>
+        {isTracking ? (
+          <TouchableOpacity style={styles.stopBtn} onPress={handleStopTracking}>
+            <Text style={styles.stopText}>Stop Journey</Text>
+            <View style={styles.pulseDot} />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.startBtn, !bus && { opacity: 0.8 }]}
+            onPress={startTracking}
+            disabled={!bus}
+          >
+            <Text style={styles.startText}>Start Journey</Text>
+            <Feather name="navigation" size={20} color="#FFF" />
+          </TouchableOpacity>
+        )}
+      </View>
+
     </SafeAreaView>
   );
 };
@@ -266,189 +271,168 @@ const DriverDashboard = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6', // Light gray background
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 20,
-    backgroundColor: '#F3F4F6', // Match background
+    paddingHorizontal: 24,
+    paddingVertical: 20,
   },
-  headerGreeting: { color: '#6B7280', fontSize: 14, fontWeight: '500' },
-  headerName: { color: '#1F2937', fontSize: 24, fontWeight: '800' },
+  greeting: { color: '#6B7280', fontSize: 14, fontWeight: '500' },
+  nameHeader: { color: '#111827', fontSize: 24, fontWeight: 'bold' },
   logoutBtn: {
-    padding: 8,
-    backgroundColor: '#FFF',
+    padding: 10,
+    backgroundColor: '#FEF2F2',
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    elevation: 2
   },
-  scrollContent: { padding: 20, paddingBottom: 40 },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+
+  // BUS CARD
   busCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#111827', // Dark Card
     borderRadius: 24,
-    padding: 20,
+    padding: 24,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    elevation: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    elevation: 8,
   },
-  busIconCircle: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+  busCardLeft: {
     marginRight: 16,
   },
-  busCardContent: { flex: 1 },
-  busRoute: { color: '#6B7280', fontSize: 13, textTransform: 'uppercase', fontWeight: '700' },
-  busPlate: { color: '#1F2937', fontSize: 22, fontWeight: '800' },
-  busRouteRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  routeText: { color: '#4B5563', fontSize: 14, fontWeight: '500' },
-  noBusText: { color: '#EF4444', fontSize: 16, fontWeight: '600' },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: '#FFF',
-    padding: 16,
-    borderRadius: 20,
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  statLabel: { color: '#6B7280', fontSize: 12, marginBottom: 4, fontWeight: '600' },
-  statValue: { color: '#1F2937', fontSize: 24, fontWeight: '800' },
-  statIcon: { position: 'absolute', top: 16, right: 16, opacity: 0.2 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 },
-  sectionTitle: { color: '#1F2937', fontSize: 18, fontWeight: '700', marginBottom: 12, marginTop: 12 },
-  countBadge: { backgroundColor: '#3B82F6', color: '#FFF', paddingHorizontal: 10, borderRadius: 12, fontSize: 12, fontWeight: 'bold', overflow: 'hidden', paddingVertical: 4 },
-  seatsContainer: {
-    backgroundColor: '#FFF',
-    padding: 16,
-    borderRadius: 20,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    elevation: 2,
-  },
-  seatBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
+  busIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  seatText: { color: '#1D4ED8', fontWeight: '700', fontSize: 13 },
-  noDataText: { color: '#9CA3AF', fontStyle: 'italic' },
-  scanBtn: {
-    backgroundColor: '#1F2937', // Dark button
+  busCardRight: { flex: 1 },
+  busPlate: { color: '#FFF', fontSize: 20, fontWeight: 'bold' },
+  busRoute: { color: BRAND_GREEN, fontSize: 14, fontWeight: '700', marginTop: 2, marginBottom: 8 },
+  routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  routeLoc: { color: '#D1D5DB', fontSize: 13 },
+  noBusText: { color: '#F87171', fontWeight: 'bold' },
+
+  // METRICS
+  metricsContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 18,
+    backgroundColor: '#F9FAFB',
     borderRadius: 20,
-    marginBottom: 24,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    elevation: 4,
+    padding: 20,
+    justifyContent: 'space-between',
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
-  scanBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  crowdControl: {
+  metricItem: { alignItems: 'center', flex: 1 },
+  metricValue: { fontSize: 22, fontWeight: 'bold', color: '#111827' },
+  metricLabel: { fontSize: 12, color: '#6B7280', marginTop: 4 },
+  verticalDivider: { width: 1, height: '80%', backgroundColor: '#E5E7EB' },
+
+  // ACTIONS
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 16 },
+  actionGrid: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
     marginBottom: 32,
   },
-  crowdBtn: {
+  actionCard: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    backgroundColor: '#FFF',
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    elevation: 2,
-    borderColor: '#E5E7EB',
-  },
-  crowdBtnActive: {
-    backgroundColor: '#F3F4F6', // Slight highlight
-    borderWidth: 2,
-  },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  crowdBtnText: { color: '#4B5563', fontWeight: '600' },
-  crowdBtnTextActive: { color: '#1F2937', fontWeight: '800' },
-  trackerContainer: {
-    marginBottom: 20,
-  },
-  startTrackingBtn: {
-    backgroundColor: '#059669', // Emerald
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 18,
+    backgroundColor: '#F3F4F6',
     borderRadius: 20,
-    gap: 12,
-    shadowColor: '#059669',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    elevation: 4,
-  },
-  startTrackingText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
-  trackingActiveBox: {
-    backgroundColor: '#059669',
-    padding: 24,
-    borderRadius: 24,
+    padding: 20,
+    height: 120,
+    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#059669',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    elevation: 4,
   },
-  trackingStatusText: { color: '#FFF', fontSize: 18, fontWeight: '800', marginBottom: 16 },
-  stopTrackingBtn: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 14,
+  actionText: { fontSize: 16, fontWeight: '600', color: '#111827', marginTop: 12 },
+
+  // SEATS
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, justifyContent: 'space-between' },
+  countBadge: { backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  countText: { color: '#3B82F6', fontWeight: '700' },
+  seatsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 32,
+  },
+  seatBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#ECFDF5',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: '#D1FAE5',
   },
-  stopTrackingText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  seatText: { color: '#065F46', fontWeight: '700' },
+  emptyStateText: { color: '#9CA3AF', fontStyle: 'italic' },
+
+  // CROWD
+  crowdRow: { flexDirection: 'row', gap: 12 },
+  crowdPill: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  crowdText: { fontWeight: '600' },
+
+  // FLOATING BUTTON
+  floatContainer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 24,
+    right: 24,
+  },
+  startBtn: {
+    backgroundColor: BRAND_GREEN,
+    borderRadius: 30,
+    paddingVertical: 18,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: BRAND_GREEN,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    elevation: 8,
+  },
+  startText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  stopBtn: {
+    backgroundColor: '#EF4444',
+    borderRadius: 30,
+    paddingVertical: 18,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    elevation: 8,
+  },
+  stopText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  pulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FFF',
+  }
 });
 
 export default DriverDashboard;

@@ -10,13 +10,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
-  Dimensions
+  Dimensions,
+  SafeAreaView
 } from 'react-native';
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { signInWithPhone } from '../services/authService';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+const BRAND_GREEN = '#10B981'; // FareGO-like green
 
 const LoginScreen = () => {
   const { login, verifyPhoneLogin } = useAuth();
@@ -33,18 +35,18 @@ const LoginScreen = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // ==================== HANDLERS (Unchanged Logic) ====================
+  // ==================== HANDLERS ====================
 
   const handleSendOtp = async () => {
     if (!phone || phone.length < 10) {
-      Alert.alert('Error', 'Please enter a valid phone number');
+      Alert.alert('Invalid Number', 'Please enter a valid phone number');
       return;
     }
     setLoading(true);
     try {
       await signInWithPhone(phone);
       setOtpSent(true);
-      Alert.alert('OTP Sent', 'Check your phone for the verification code');
+      Alert.alert('Code Sent', 'Please check your messages.');
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {
@@ -54,7 +56,7 @@ const LoginScreen = () => {
 
   const handleVerifyOtp = async () => {
     if (!otp || otp.length < 6) {
-      Alert.alert('Error', 'Please enter the 6-digit OTP');
+      Alert.alert('Invalid Code', 'Please enter the 6-digit code');
       return;
     }
     setLoading(true);
@@ -69,7 +71,7 @@ const LoginScreen = () => {
 
   const handleEmailLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('Missing Fields', 'Please fill in all fields');
       return;
     }
     setLoading(true);
@@ -82,285 +84,270 @@ const LoginScreen = () => {
     }
   };
 
-  // ==================== NEW RENDER ====================
+  // ==================== RENDER ====================
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* TOP SECTION: BRANDING */}
-        <View style={styles.topSection}>
-          {/* Placeholder for Logo - Using Text Icon for now */}
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoIcon}>🚌</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+
+          {/* HEADER / ILLUSTRATION SECTION */}
+          <View style={styles.headerSection}>
+            <View style={styles.iconCircle}>
+              <MaterialCommunityIcons name="bus-side" size={64} color={BRAND_GREEN} />
+            </View>
+            <Text style={styles.welcomeText}>Welcome to FareGO</Text>
+            <Text style={styles.subText}>Partner App</Text>
           </View>
-          <Text style={styles.welcomeText}>Welcome to FareGO</Text>
-          <Text style={styles.subText}>Partner App</Text>
-        </View>
 
-        {/* MIDDLE SECTION: INTERACTION AREA */}
-        <View style={styles.middleSection}>
-
-          {/* Tab Switcher (Subtle) */}
+          {/* TAB SWITCHER */}
           <View style={styles.tabContainer}>
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'phone' && styles.activeTab]}
+              style={[styles.tabButton, activeTab === 'phone' && styles.activeTabButton]}
               onPress={() => setActiveTab('phone')}
             >
               <Text style={[styles.tabText, activeTab === 'phone' && styles.activeTabText]}>Phone</Text>
             </TouchableOpacity>
+            <View style={styles.tabDivider} />
             <TouchableOpacity
-              style={[styles.tab, activeTab === 'email' && styles.activeTab]}
+              style={[styles.tabButton, activeTab === 'email' && styles.activeTabButton]}
               onPress={() => setActiveTab('email')}
             >
               <Text style={[styles.tabText, activeTab === 'email' && styles.activeTabText]}>Email</Text>
             </TouchableOpacity>
           </View>
 
-          {activeTab === 'phone' ? (
-            // PHONE INPUTS
-            <>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Mobile Number</Text>
-                <TextInput
-                  style={styles.input}
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="+94 77 123 4567"
-                  keyboardType="phone-pad"
-                  placeholderTextColor="#9CA3AF"
-                  editable={!otpSent}
-                />
-              </View>
+          {/* FORM AREA */}
+          <View style={styles.formSection}>
+            {activeTab === 'phone' ? (
+              // PHONE INPUT
+              <>
+                <View style={styles.inputWrapper}>
+                  <View style={styles.inputIcon}>
+                    <Feather name="smartphone" size={20} color="#9CA3AF" />
+                  </View>
+                  <TextInput
+                    style={styles.input}
+                    value={phone}
+                    onChangeText={setPhone}
+                    placeholder="+94 77 123 4567"
+                    keyboardType="phone-pad"
+                    placeholderTextColor="#9CA3AF"
+                    editable={!otpSent}
+                  />
+                </View>
 
-              {otpSent && (
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Verification Code</Text>
-                  <View style={styles.otpContainer}>
+                {otpSent && (
+                  <View style={[styles.inputWrapper, { marginTop: 16 }]}>
+                    <View style={styles.inputIcon}>
+                      <Feather name="lock" size={20} color="#9CA3AF" />
+                    </View>
                     <TextInput
-                      style={[styles.input, styles.otpInput]}
+                      style={styles.input}
                       value={otp}
                       onChangeText={setOtp}
-                      placeholder="• • • • • •"
+                      placeholder="Enter 6-digit Code"
                       keyboardType="number-pad"
                       maxLength={6}
                       placeholderTextColor="#9CA3AF"
-                      textAlign="center"
                     />
                   </View>
-                </View>
-              )}
-            </>
-          ) : (
-            // EMAIL INPUTS
-            <>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Email Address</Text>
-                <TextInput
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="driver@example.com"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Password</Text>
-                <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  secureTextEntry
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-            </>
-          )}
-
-          {/* PRIMARY ACTION BUTTON */}
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={
-              activeTab === 'phone'
-                ? (otpSent ? handleVerifyOtp : handleSendOtp)
-                : handleEmailLogin
-            }
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color="#000" />
+                )}
+              </>
             ) : (
-              <Text style={styles.primaryButtonText}>
-                {activeTab === 'phone'
-                  ? (otpSent ? 'Verify & Login' : 'Get Started')
-                  : 'Login'}
-              </Text>
+              // EMAIL INPUT
+              <>
+                <View style={styles.inputWrapper}>
+                  <View style={styles.inputIcon}>
+                    <Feather name="mail" size={20} color="#9CA3AF" />
+                  </View>
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="name@company.com"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+                <View style={[styles.inputWrapper, { marginTop: 16 }]}>
+                  <View style={styles.inputIcon}>
+                    <Feather name="lock" size={20} color="#9CA3AF" />
+                  </View>
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Password"
+                    secureTextEntry
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+              </>
             )}
-          </TouchableOpacity>
 
-        </View>
-
-        {/* BOTTOM SECTION: SECONDARY ACTIONS */}
-        <View style={styles.bottomSection}>
-          {activeTab === 'phone' && otpSent && (
-            <TouchableOpacity onPress={() => { setOtpSent(false); setOtp(''); }}>
-              <Text style={styles.linkText}>Change Number</Text>
+            {/* MAIN BUTTON (Reference: Black "Get Started" Button) */}
+            <TouchableOpacity
+              style={styles.mainButton}
+              onPress={
+                activeTab === 'phone'
+                  ? (otpSent ? handleVerifyOtp : handleSendOtp)
+                  : handleEmailLogin
+              }
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.mainButtonText}>
+                  {activeTab === 'phone' && !otpSent ? 'Get Started' : 'Login'}
+                </Text>
+              )}
             </TouchableOpacity>
-          )}
 
-          <TouchableOpacity onPress={() => Alert.alert('Support', 'Please contact admin for help.')}>
-            <Text style={styles.secondaryText}>Need Help?</Text>
-          </TouchableOpacity>
-        </View>
-
-      </ScrollView>
-    </KeyboardAvoidingView>
+            {/* Links / Help */}
+            <View style={styles.footerLinks}>
+              {activeTab === 'phone' && otpSent && (
+                <TouchableOpacity onPress={() => { setOtpSent(false); setOtp(''); }}>
+                  <Text style={styles.linkText}>Change Number</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212', // Dark Theme Request from "Visual Hierarchy" usually implies premium dark/light
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingHorizontal: 32,
+    justifyContent: 'center',
+    paddingVertical: 40,
   },
 
-  // TOP SECTION
-  topSection: {
+  // HEADER
+  headerSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 48,
   },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 25,
-    backgroundColor: '#1E1E1E',
+  iconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#ECFDF5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    elevation: 8,
-  },
-  logoIcon: {
-    fontSize: 40,
+    marginBottom: 24,
   },
   welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 8,
   },
   subText: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
 
-  // MIDDLE SECTION
-  middleSection: {
-    width: '100%',
-  },
+  // TABS
   tabContainer: {
     flexDirection: 'row',
-    marginBottom: 30,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    padding: 4,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
+    justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
+    marginBottom: 32,
+    alignSelf: 'center',
   },
-  activeTab: {
-    backgroundColor: '#2D2D2D',
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  activeTabButton: {
+    borderBottomWidth: 2,
+    borderBottomColor: BRAND_GREEN,
   },
   tabText: {
-    color: '#6B7280',
+    fontSize: 16,
     fontWeight: '600',
+    color: '#9CA3AF',
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: '#111827',
+  },
+  tabDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 8,
   },
 
   // INPUTS
-  inputContainer: {
-    marginBottom: 20,
+  formSection: {
+    width: '100%',
   },
-  inputLabel: {
-    color: '#D1D5DB',
-    marginBottom: 8,
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 4,
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    height: 56,
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   input: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 16, // Pill shape-ish
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    color: '#FFFFFF',
+    flex: 1,
     fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  otpContainer: {
-    alignItems: 'center',
-  },
-  otpInput: {
-    width: '100%',
-    letterSpacing: 8,
-    fontSize: 24,
-    fontWeight: 'bold',
+    color: '#111827',
+    height: '100%',
   },
 
-  // BUTTONS
-  primaryButton: {
-    backgroundColor: '#FFFFFF', // High Contrast
-    borderRadius: 30, // Full Pill
-    paddingVertical: 18,
+  // BUTTON
+  mainButton: {
+    backgroundColor: '#000000',
+    borderRadius: 30, // Pill shape
+    height: 56,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    shadowColor: '#FFF',
-    shadowOffset: { width: 0, height: 2 },
+    marginTop: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     elevation: 4,
   },
-  primaryButtonText: {
-    color: '#000000',
+  mainButtonText: {
+    color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: 'bold',
-  },
-
-  // BOTTOM SECTION
-  bottomSection: {
-    marginTop: 40,
-    alignItems: 'center',
-    gap: 16,
-  },
-  linkText: {
-    color: '#60A5FA', // Blue-400
     fontWeight: '600',
   },
-  secondaryText: {
-    color: '#6B7280',
+
+  // FOOTER
+  footerLinks: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  linkText: {
+    color: BRAND_GREEN,
+    fontWeight: '500',
     fontSize: 14,
   },
 });
