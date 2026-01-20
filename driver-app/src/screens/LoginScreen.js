@@ -9,10 +9,14 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Image,
+  Dimensions
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { signInWithPhone } from '../services/authService'; // Keep for sending OTP, but verify via context
+import { signInWithPhone } from '../services/authService';
+
+const { width } = Dimensions.get('window');
 
 const LoginScreen = () => {
   const { login, verifyPhoneLogin } = useAuth();
@@ -29,14 +33,13 @@ const LoginScreen = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // ==================== PHONE OTP HANDLERS ====================
+  // ==================== HANDLERS (Unchanged Logic) ====================
 
   const handleSendOtp = async () => {
     if (!phone || phone.length < 10) {
       Alert.alert('Error', 'Please enter a valid phone number');
       return;
     }
-
     setLoading(true);
     try {
       await signInWithPhone(phone);
@@ -54,11 +57,9 @@ const LoginScreen = () => {
       Alert.alert('Error', 'Please enter the 6-digit OTP');
       return;
     }
-
     setLoading(true);
     try {
       await verifyPhoneLogin(phone, otp);
-      // Auth state change handled by context
     } catch (error) {
       Alert.alert('Verification Failed', error.message);
     } finally {
@@ -66,18 +67,14 @@ const LoginScreen = () => {
     }
   };
 
-  // ==================== EMAIL HANDLERS ====================
-
   const handleEmailLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-
     setLoading(true);
     try {
       await login(email, password);
-      // Auth state change handled by context
     } catch (error) {
       Alert.alert('Login Failed', error.message);
     } finally {
@@ -85,7 +82,7 @@ const LoginScreen = () => {
     }
   };
 
-  // ==================== RENDER ====================
+  // ==================== NEW RENDER ====================
 
   return (
     <KeyboardAvoidingView
@@ -95,122 +92,137 @@ const LoginScreen = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>🚌 Bus Partner</Text>
-          <Text style={styles.subtitle}>Login to start tracking</Text>
+        {/* TOP SECTION: BRANDING */}
+        <View style={styles.topSection}>
+          {/* Placeholder for Logo - Using Text Icon for now */}
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoIcon}>🚌</Text>
+          </View>
+          <Text style={styles.welcomeText}>Welcome to FareGO</Text>
+          <Text style={styles.subText}>Partner App</Text>
         </View>
 
-        {/* Tab Selector */}
-        <View style={styles.tabContainer}>
+        {/* MIDDLE SECTION: INTERACTION AREA */}
+        <View style={styles.middleSection}>
+
+          {/* Tab Switcher (Subtle) */}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'phone' && styles.activeTab]}
+              onPress={() => setActiveTab('phone')}
+            >
+              <Text style={[styles.tabText, activeTab === 'phone' && styles.activeTabText]}>Phone</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'email' && styles.activeTab]}
+              onPress={() => setActiveTab('email')}
+            >
+              <Text style={[styles.tabText, activeTab === 'email' && styles.activeTabText]}>Email</Text>
+            </TouchableOpacity>
+          </View>
+
+          {activeTab === 'phone' ? (
+            // PHONE INPUTS
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Mobile Number</Text>
+                <TextInput
+                  style={styles.input}
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="+94 77 123 4567"
+                  keyboardType="phone-pad"
+                  placeholderTextColor="#9CA3AF"
+                  editable={!otpSent}
+                />
+              </View>
+
+              {otpSent && (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Verification Code</Text>
+                  <View style={styles.otpContainer}>
+                    <TextInput
+                      style={[styles.input, styles.otpInput]}
+                      value={otp}
+                      onChangeText={setOtp}
+                      placeholder="• • • • • •"
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      placeholderTextColor="#9CA3AF"
+                      textAlign="center"
+                    />
+                  </View>
+                </View>
+              )}
+            </>
+          ) : (
+            // EMAIL INPUTS
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Email Address</Text>
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="driver@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="••••••••"
+                  secureTextEntry
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+            </>
+          )}
+
+          {/* PRIMARY ACTION BUTTON */}
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'phone' && styles.activeTab]}
-            onPress={() => { setActiveTab('phone'); setOtpSent(false); }}
+            style={styles.primaryButton}
+            onPress={
+              activeTab === 'phone'
+                ? (otpSent ? handleVerifyOtp : handleSendOtp)
+                : handleEmailLogin
+            }
+            disabled={loading}
+            activeOpacity={0.8}
           >
-            <Text style={[styles.tabText, activeTab === 'phone' && styles.activeTabText]}>
-              📱 Phone
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#000" />
+            ) : (
+              <Text style={styles.primaryButtonText}>
+                {activeTab === 'phone'
+                  ? (otpSent ? 'Verify & Login' : 'Get Started')
+                  : 'Login'}
+              </Text>
+            )}
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'email' && styles.activeTab]}
-            onPress={() => setActiveTab('email')}
-          >
-            <Text style={[styles.tabText, activeTab === 'email' && styles.activeTabText]}>
-              ✉️ Email
-            </Text>
+
+        </View>
+
+        {/* BOTTOM SECTION: SECONDARY ACTIONS */}
+        <View style={styles.bottomSection}>
+          {activeTab === 'phone' && otpSent && (
+            <TouchableOpacity onPress={() => { setOtpSent(false); setOtp(''); }}>
+              <Text style={styles.linkText}>Change Number</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity onPress={() => Alert.alert('Support', 'Please contact admin for help.')}>
+            <Text style={styles.secondaryText}>Need Help?</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Phone OTP Form */}
-        {activeTab === 'phone' && (
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Phone Number (+94...)"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              placeholderTextColor="#9CA3AF"
-              editable={!otpSent}
-            />
-
-            {otpSent && (
-              <TextInput
-                style={styles.input}
-                placeholder="Enter 6-digit OTP"
-                value={otp}
-                onChangeText={setOtp}
-                keyboardType="number-pad"
-                maxLength={6}
-                placeholderTextColor="#9CA3AF"
-              />
-            )}
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={otpSent ? handleVerifyOtp : handleSendOtp}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>
-                  {otpSent ? 'Verify OTP' : 'Send OTP'}
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            {otpSent && (
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => { setOtpSent(false); setOtp(''); }}
-              >
-                <Text style={styles.linkText}>Change phone number</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-
-        {/* Email Form */}
-        {activeTab === 'email' && (
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholderTextColor="#9CA3AF"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#9CA3AF"
-            />
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleEmailLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Login</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <Text style={styles.hint}>
-          {activeTab === 'phone'
-            ? 'Sri Lanka: +94 followed by your number'
-            : 'Use your registered email and password'
-          }
-        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -219,101 +231,137 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#121212', // Dark Theme Request from "Visual Hierarchy" usually implies premium dark/light
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
-  header: {
+
+  // TOP SECTION
+  topSection: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1F2937',
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 25,
+    backgroundColor: '#1E1E1E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    elevation: 8,
+  },
+  logoIcon: {
+    fontSize: 40,
+  },
+  welcomeText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
-  subtitle: {
+  subText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: '#9CA3AF',
+  },
+
+  // MIDDLE SECTION
+  middleSection: {
+    width: '100%',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E5E7EB',
-    borderRadius: 16,
+    marginBottom: 30,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
     padding: 4,
-    marginBottom: 24,
   },
   tab: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 10,
   },
   activeTab: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    elevation: 2,
+    backgroundColor: '#2D2D2D',
   },
   tabText: {
-    fontSize: 16,
-    fontWeight: '600',
     color: '#6B7280',
+    fontWeight: '600',
   },
   activeTabText: {
-    color: '#1F2937',
+    color: '#FFFFFF',
   },
-  form: {
-    gap: 16,
+
+  // INPUTS
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    color: '#D1D5DB',
+    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 4,
   },
   input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16, // Pill shape-ish
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    color: '#FFFFFF',
     fontSize: 16,
-    color: '#1F2937',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    elevation: 2,
+    borderColor: '#333333',
   },
-  button: {
-    backgroundColor: '#1F2937',
-    borderRadius: 16,
-    padding: 18,
+  otpContainer: {
     alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+  },
+  otpInput: {
+    width: '100%',
+    letterSpacing: 8,
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+
+  // BUTTONS
+  primaryButton: {
+    backgroundColor: '#FFFFFF', // High Contrast
+    borderRadius: 30, // Full Pill
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#FFF',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     elevation: 4,
   },
-  buttonText: {
-    color: '#fff',
+  primaryButtonText: {
+    color: '#000000',
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: 'bold',
   },
-  linkButton: {
+
+  // BOTTOM SECTION
+  bottomSection: {
+    marginTop: 40,
     alignItems: 'center',
-    marginTop: 8,
+    gap: 16,
   },
   linkText: {
-    color: '#3B82F6',
-    fontSize: 14,
+    color: '#60A5FA', // Blue-400
     fontWeight: '600',
   },
-  hint: {
-    textAlign: 'center',
-    color: '#9CA3AF',
-    marginTop: 24,
-    fontSize: 12,
+  secondaryText: {
+    color: '#6B7280',
+    fontSize: 14,
   },
 });
 
