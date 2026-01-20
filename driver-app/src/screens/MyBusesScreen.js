@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
-const MyBusesScreen = () => {
+const MyBusesScreen = ({ navigation }) => {
     // Mock Data
     const [buses, setBuses] = useState([
         { id: '1', plate: 'ND-4567', route: '138', routeName: 'Pettah - Homagama', status: 'Active', bookings: 12, revenue: '8,500' },
@@ -19,7 +19,11 @@ const MyBusesScreen = () => {
     };
 
     const renderBusItem = ({ item }) => (
-        <TouchableOpacity style={styles.busCard} activeOpacity={0.9}>
+        <TouchableOpacity
+            style={styles.busCard}
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('BusDetails', { busId: item.id })}
+        >
             <View style={styles.cardHeader}>
                 <View style={styles.plateContainer}>
                     <MaterialCommunityIcons name="bus" size={24} color="#1F2937" />
