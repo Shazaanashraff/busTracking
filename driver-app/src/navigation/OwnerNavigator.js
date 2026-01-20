@@ -8,13 +8,7 @@ import OwnerDashboard from '../screens/OwnerDashboard';
 import MyBusesScreen from '../screens/MyBusesScreen';
 import BookingsScreen from '../screens/BookingsScreen';
 import RevenueScreen from '../screens/RevenueScreen';
-
-// Placeholder for Profile (will be implemented next)
-const OwnerProfileScreen = () => (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Profile & Settings</Text>
-    </View>
-);
+import OwnerProfileScreen from '../screens/OwnerProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
