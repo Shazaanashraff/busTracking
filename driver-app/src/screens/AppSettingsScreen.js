@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, StatusBar, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, StatusBar, SafeAreaView, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
 const AppSettingsScreen = ({ navigation }) => {
@@ -11,8 +12,44 @@ const AppSettingsScreen = ({ navigation }) => {
         location: true
     });
 
-    const toggleSwitch = (key) => {
-        setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+    useEffect(() => {
+        loadSettings();
+    }, []);
+
+    const loadSettings = async () => {
+        try {
+            const savedSettings = await AsyncStorage.getItem('appSettings');
+            if (savedSettings) {
+                setSettings(JSON.parse(savedSettings));
+            }
+        } catch (error) {
+            console.error('Failed to load settings', error);
+        }
+    };
+
+    const toggleSwitch = async (key) => {
+        const newSettings = { ...settings, [key]: !settings[key] };
+        setSettings(newSettings);
+        try {
+            await AsyncStorage.setItem('appSettings', JSON.stringify(newSettings));
+        } catch (error) {
+            console.error('Failed to save settings', error);
+        }
+    };
+
+    const handleClearCache = () => {
+        Alert.alert(
+            "Clear Cache",
+            "Are you sure you want to clear 24 MB of cached data?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Clear", onPress: () => Alert.alert("Success", "Cache cleared successfully") }
+            ]
+        );
+    };
+
+    const handleLanguageChange = () => {
+        Alert.alert("Language", "Language selection is coming soon!");
     };
 
     return (
@@ -71,7 +108,7 @@ const AppSettingsScreen = ({ navigation }) => {
                         />
                     </View>
                     <View style={styles.divider} />
-                    <TouchableOpacity style={styles.row}>
+                    <TouchableOpacity style={styles.row} onPress={handleLanguageChange}>
                         <View style={styles.labelContainer}>
                             <Ionicons name="language-outline" size={22} color="#4B5563" />
                             <Text style={styles.rowLabel}>Language</Text>
@@ -111,7 +148,7 @@ const AppSettingsScreen = ({ navigation }) => {
                         />
                     </View>
                     <View style={styles.divider} />
-                    <TouchableOpacity style={styles.row}>
+                    <TouchableOpacity style={styles.row} onPress={handleClearCache}>
                         <View style={styles.labelContainer}>
                             <Ionicons name="trash-outline" size={22} color="#EF4444" />
                             <Text style={[styles.rowLabel, { color: '#EF4444' }]}>Clear Cache</Text>
