@@ -11,9 +11,11 @@ import {
   Platform,
   ScrollView
 } from 'react-native';
-import { signInWithEmail, signInWithPhone, verifyOtp } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
+import { signInWithPhone } from '../services/authService'; // Keep for sending OTP, but verify via context
 
 const LoginScreen = () => {
+  const { login, verifyPhoneLogin } = useAuth();
   const [activeTab, setActiveTab] = useState('phone'); // 'phone' or 'email'
 
   // Phone OTP state
@@ -55,8 +57,8 @@ const LoginScreen = () => {
 
     setLoading(true);
     try {
-      await verifyOtp(phone, otp);
-      // Auth state change will be handled by AuthContext
+      await verifyPhoneLogin(phone, otp);
+      // Auth state change handled by context
     } catch (error) {
       Alert.alert('Verification Failed', error.message);
     } finally {
@@ -74,8 +76,8 @@ const LoginScreen = () => {
 
     setLoading(true);
     try {
-      await signInWithEmail(email, password);
-      // Auth state change will be handled by AuthContext
+      await login(email, password);
+      // Auth state change handled by context
     } catch (error) {
       Alert.alert('Login Failed', error.message);
     } finally {

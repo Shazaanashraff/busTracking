@@ -65,6 +65,53 @@ export const AuthProvider = ({ children }) => {
     role: profile?.role || 'passenger',
   } : null;
 
+  // Manual login for Demo Mode support
+  const login = async (email, password) => {
+    try {
+      // Import dynamically to avoid circular dependencies if any
+      const { signInWithEmail } = require('../services/authService');
+      const data = await signInWithEmail(email, password);
+
+      // If it's a demo session, manually update state
+      if (data?.session?.access_token === 'mock-token') {
+        console.log('⚡ Manual state update for Demo User');
+        setSession(data.session);
+        setProfile({
+          id: data.user.id,
+          name: data.user.role.charAt(0).toUpperCase() + data.user.role.slice(1) + ' (Demo)',
+          role: data.user.role,
+          email: data.user.email
+        });
+        setLoading(false);
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const verifyPhoneLogin = async (phone, otp) => {
+    try {
+      const { verifyOtp } = require('../services/authService');
+      const data = await verifyOtp(phone, otp);
+
+      if (data?.session?.access_token === 'mock-token') {
+        console.log('⚡ Manual state update for Demo Phone User');
+        setSession(data.session);
+        setProfile({
+          id: data.user.id,
+          name: 'Demo Phone User',
+          role: data.user.role,
+          phone: data.user.phone
+        });
+        setLoading(false);
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -83,8 +130,11 @@ export const AuthProvider = ({ children }) => {
         profile,
         token: session?.access_token,
         loading,
+        loading,
         logout,
         refreshProfile,
+        login,
+        verifyPhoneLogin,
       }}
     >
       {children}

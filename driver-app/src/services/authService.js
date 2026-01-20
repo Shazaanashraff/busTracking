@@ -19,10 +19,30 @@ export const signUpWithEmail = async (email, password) => {
     return data;
 };
 
+// ==================== TEST/DEMO CREDENTIALS ====================
+const TEST_USERS = {
+    'passenger@test.com': { id: 'test-passenger-id', role: 'passenger' },
+    'crew@test.com': { id: 'test-crew-id', role: 'crew' },
+    'owner@test.com': { id: 'test-owner-id', role: 'owner' },
+    'admin@test.com': { id: 'test-admin-id', role: 'admin' },
+};
+
+const TEST_OTP = '123456';
+
 /**
  * Sign in with email and password
  */
 export const signInWithEmail = async (email, password) => {
+    // DEMO BYPASS
+    if (TEST_USERS[email] && password === 'Test@123') {
+        console.log('🔹 Using Demo Login for:', email);
+        const user = TEST_USERS[email];
+        return {
+            user: { id: user.id, email, role: user.role },
+            session: { access_token: 'mock-token', user: { id: user.id, email, role: user.role } }
+        };
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -38,6 +58,12 @@ export const signInWithEmail = async (email, password) => {
  * @param {string} phone - Phone number with country code (e.g., +94771234567)
  */
 export const signInWithPhone = async (phone) => {
+    // DEMO BYPASS
+    if (phone.endsWith('000000')) { // Test numbers ending in 000000
+        console.log('🔹 Using Demo OTP for:', phone);
+        return { message: 'Demo OTP sent' };
+    }
+
     const { data, error } = await supabase.auth.signInWithOtp({
         phone,
     });
@@ -51,6 +77,15 @@ export const signInWithPhone = async (phone) => {
  * @param {string} token - OTP code received via SMS
  */
 export const verifyOtp = async (phone, token) => {
+    // DEMO BYPASS
+    if (token === TEST_OTP) {
+        console.log('🔹 Using Demo OTP Verify');
+        return {
+            user: { id: 'test-phone-user', phone, role: 'passenger' },
+            session: { access_token: 'mock-token', user: { id: 'test-phone-user', phone, role: 'passenger' } }
+        };
+    }
+
     const { data, error } = await supabase.auth.verifyOtp({
         phone,
         token,
