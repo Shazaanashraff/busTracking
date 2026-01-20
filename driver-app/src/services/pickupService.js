@@ -186,7 +186,7 @@ export const markPickedUp = async (bookingId) => {
 
 /**
  * Get masked phone number for display
- * Example: +94771234567 -> +94 77* *** *67
+ * Example: +94771234567 -> +94 *** **67
  */
 export const getMaskedPhone = (phone) => {
     if (!phone || phone.length < 8) return '***';
@@ -197,10 +197,32 @@ export const getMaskedPhone = (phone) => {
 };
 
 /**
- * Call passenger (opens phone dialer)
- * Phone number is passed directly but can be masked in UI
+ * Initiate masked call to passenger via Edge Function
+ * Both parties see "Bus App" caller ID, no numbers exposed
+ * 
+ * Flow: Crew App → Edge Function → Twilio → Passenger
  */
-export const callPassenger = async (phone) => {
+export const callPassengerMasked = async (bookingId) => {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+        throw new Error('Not authenticated');
+    }
+
+    const { data, error } = await supabase.functions.invoke('masked-call', {
+        body: { bookingId },
+    });
+
+    if (error) throw error;
+    if (!data.success) throw new Error(data.error || 'Call failed');
+
+    return data;
+};
+
+/**
+ * Fallback: Direct call (exposes number - use only if masked not available)
+ */
+export const callPassengerDirect = async (phone) => {
     if (!phone) {
         throw new Error('No phone number available');
     }
@@ -221,7 +243,7 @@ export const callPassenger = async (phone) => {
 };
 
 /**
- * Send WhatsApp message to passenger
+ * Send WhatsApp message to passenger (still uses real number but via WhatsApp)
  */
 export const whatsappPassenger = async (phone, message = '') => {
     if (!phone) {
