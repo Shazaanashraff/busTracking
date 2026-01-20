@@ -4,7 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { ActivityIndicator, View } from 'react-native';
 
 import LoginScreen from '../screens/LoginScreen';
-import DriverDashboard from '../screens/DriverDashboard';
+import DriverNavigator from './DriverNavigator';
+import OwnerNavigator from './OwnerNavigator';
+import QRScannerScreen from '../screens/QRScannerScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,16 +30,22 @@ const AppNavigator = () => {
       }}
     >
       {!user ? (
-        <Stack.Screen 
-          name="Login" 
+        <Stack.Screen
+          name="Login"
           component={LoginScreen}
           options={{ headerShown: false }}
         />
+      ) : user.role === 'owner' ? (
+        <Stack.Screen
+          name="OwnerApp"
+          component={OwnerNavigator}
+          options={{ headerShown: false }}
+        />
       ) : (
-        <Stack.Screen 
-          name="Dashboard" 
-          component={DriverDashboard}
-          options={{ title: 'Driver Dashboard' }}
+        <Stack.Screen
+          name="DriverApp"
+          component={DriverNavigator}
+          options={{ headerShown: false }}
         />
       )}
     </Stack.Navigator>
