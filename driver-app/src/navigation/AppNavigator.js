@@ -10,6 +10,10 @@ import QRScannerScreen from '../screens/QRScannerScreen';
 import BusDetailsScreen from '../screens/BusDetailsScreen';
 import DriverManagementScreen from '../screens/DriverManagementScreen';
 import ReportsScreen from '../screens/ReportsScreen';
+import BusinessInfoScreen from '../screens/BusinessInfoScreen';
+import BankDetailsScreen from '../screens/BankDetailsScreen';
+import AppSettingsScreen from '../screens/AppSettingsScreen';
+import HelpSupportScreen from '../screens/HelpSupportScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -58,6 +62,26 @@ const AppNavigator = () => {
           <Stack.Screen
             name="Reports"
             component={ReportsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BusinessInfo"
+            component={BusinessInfoScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BankDetails"
+            component={BankDetailsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AppSettings"
+            component={AppSettingsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="HelpSupport"
+            component={HelpSupportScreen}
             options={{ headerShown: false }}
           />
         </>

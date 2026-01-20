@@ -25,10 +25,10 @@ const OwnerProfileScreen = ({ navigation }) => {
     ];
 
     const generalItems = [
-        { title: 'Business Info', icon: 'briefcase-outline' },
-        { title: 'Bank Details', icon: 'card-outline' },
-        { title: 'App Settings', icon: 'settings-outline' },
-        { title: 'Help & Support', icon: 'help-circle-outline' },
+        { title: 'Business Info', icon: 'briefcase-outline', action: () => navigation.navigate('BusinessInfo') },
+        { title: 'Bank Details', icon: 'card-outline', action: () => navigation.navigate('BankDetails') },
+        { title: 'App Settings', icon: 'settings-outline', action: () => navigation.navigate('AppSettings') },
+        { title: 'Help & Support', icon: 'help-circle-outline', action: () => navigation.navigate('HelpSupport') },
     ];
 
     return (
@@ -90,7 +90,7 @@ const OwnerProfileScreen = ({ navigation }) => {
                 <Text style={styles.sectionTitle}>General</Text>
                 <View style={styles.menuContainer}>
                     {generalItems.map((item, index) => (
-                        <TouchableOpacity key={index} style={styles.menuItem}>
+                        <TouchableOpacity key={index} style={styles.menuItem} onPress={item.action}>
                             <View style={[styles.iconBox, { backgroundColor: '#F3F4F6' }]}>
                                 <Ionicons name={item.icon} size={22} color="#6B7280" />
                             </View>
