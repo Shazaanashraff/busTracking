@@ -1,4 +1,5 @@
 import { API_URL } from '../config';
+import { supabase } from './supabase';
 
 const api = {
   async login(email, password) {
@@ -54,66 +55,55 @@ const api = {
   },
 
   async getOwnerStats(token) {
-    // Mocking Owner Stats
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          dailyRevenue: 'LKR 45,200',
-          monthlyRevenue: 'LKR 1.2M',
-          activeBuses: 8,
-          totalBuses: 12,
-          todaysBookings: 42,
-          seatsSold: 38,
-          cancellations: 3,
-          seatUtilization: 78,
-          payments: [
-            { passengerName: 'Kamal Perera', phone: '077****321', amount: 'LKR 850', status: 'PAID' },
-            { passengerName: 'Nimali Silva', phone: '076****882', amount: 'LKR 1,200', status: 'PAID' },
-            { passengerName: 'Sunil Dias', phone: '071****554', amount: 'LKR 450', status: 'PAID' },
-            { passengerName: 'Chathura Rao', phone: '077****991', amount: 'LKR 1,800', status: 'PENDING' }
-          ]
-        });
-      }, 800);
-    });
+    const { data, error } = await supabase.rpc('get_owner_dashboard_stats');
+
+    if (error) {
+      console.error('Error fetching owner stats:', error);
+      throw error;
+    }
+
+    return {
+      dailyRevenue: `LKR ${data.dailyRevenue?.toLocaleString() || '0'}`,
+      monthlyRevenue: `LKR ${data.monthlyRevenue?.toLocaleString() || '0'}`,
+      activeBuses: data.activeBuses || 0,
+      totalBuses: data.totalBuses || 0,
+      todaysBookings: data.todaysBookings || 0,
+      seatUtilization: data.seatUtilization || 0,
+      cancellations: data.cancellations || 0,
+      payments: [] // Keeping empty for now as requested or implementing separate RPC later
+    };
   },
 
   async getDashboardStats(token) {
-    // Mocking the stats as per requirements
-    // In real app, fetch from backend: GET /api/driver/stats
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          tripsToday: 4,
-          bookings: 18,
-          totalPassengers: 42,
-          bookedSeats: [3, 4, 6, 7, 8, 12, 13, 14],
-          revenue: 0 // Hidden as per requirement
-        });
-      }, 800);
-    });
+    const { data, error } = await supabase.rpc('get_driver_dashboard_stats');
+
+    if (error) {
+      console.error('Error fetching driver stats:', error);
+      // Return zeros on error to prevent crash
+      return {
+        tripsToday: 0,
+        bookings: 0,
+        totalPassengers: 0,
+        bookedSeats: [],
+        revenue: 0
+      };
+    }
+
+    return data;
   },
 
-  async validateTicket(token, ticketId) {
-    // Mock validation
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simulate 80% success rate
-        if (Math.random() > 0.2) {
-          resolve({
-            valid: true,
-            passengerName: 'Kasun Perera',
-            seatNumber: '4',
-            ticketId: ticketId,
-            busId: 'ND-4567'
-          });
-        } else {
-          resolve({
-            valid: false,
-            reason: 'Ticket Expired or Invalid'
-          });
-        }
-      }, 1000);
+  async validateTicket(token, ticketId, busId) {
+    const { data, error } = await supabase.rpc('validate_ticket', {
+      ticket_id: ticketId,
+      scan_bus_id: busId || '00000000-0000-0000-0000-000000000000' // Fallback or handle error
     });
+
+    if (error) {
+      console.error('Validation error:', error);
+      return { valid: false, reason: 'Validation Error' };
+    }
+
+    return data;
   },
 
   async updateCrowdLevel(token, level) {
