@@ -310,7 +310,8 @@ export default {
     cancelPickup,
     markPickedUp,
     getMaskedPhone,
-    callPassenger,
+    callPassengerMasked,
+    callPassengerDirect,
     whatsappPassenger,
     getTodayPickupStats,
 };
