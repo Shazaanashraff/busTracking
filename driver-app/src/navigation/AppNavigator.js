@@ -42,7 +42,7 @@ const AppNavigator = () => {
           component={LoginScreen}
           options={{ headerShown: false }}
         />
-      ) : user.role === 'owner' ? (
+      ) : user.role === 'owner' || user.role === 'admin' ? (
         <>
           <Stack.Screen
             name="OwnerApp"
