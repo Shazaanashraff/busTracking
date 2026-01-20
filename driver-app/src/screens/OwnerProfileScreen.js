@@ -13,14 +13,14 @@ const OwnerProfileScreen = ({ navigation }) => {
             icon: 'people-outline',
             iconColor: '#3B82F6',
             bg: '#EFF6FF',
-            action: () => alert('Navigate to Driver Management') // Placeholder
+            action: () => navigation.navigate('DriverManagement')
         },
         {
             title: 'Reports & Analytics',
             icon: 'bar-chart-outline',
             iconColor: '#8B5CF6',
             bg: '#F5F3FF',
-            action: () => alert('Navigate to Reports') // Placeholder
+            action: () => navigation.navigate('Reports')
         },
     ];
 
