@@ -6,12 +6,12 @@
 const jwt = require('jsonwebtoken');
 
 // Mock User model
-jest.mock('../models/User', () => ({
+jest.mock('../../models/User', () => ({
     findById: jest.fn(),
 }));
 
-const User = require('../models/User');
-const { protect, requireDriver, requireUser } = require('../middleware/auth');
+const User = require('../../models/User');
+const { protect, requireDriver, requireUser } = require('../auth');
 
 // Helper to create mock request/response
 const mockReq = (overrides = {}) => ({
@@ -99,7 +99,7 @@ describe('Auth Middleware', () => {
             expect(mockNext).toHaveBeenCalled();
         });
 
-        it('should reject non-driver role', () => {
+        it('should reject passenger trying to access driver endpoint', () => {
             const req = mockReq({ user: { role: 'user' } });
             const res = mockRes();
 
@@ -114,7 +114,7 @@ describe('Auth Middleware', () => {
     });
 
     describe('requireUser middleware', () => {
-        it('should allow user role', () => {
+        it('should allow user/passenger role', () => {
             const req = mockReq({ user: { role: 'user' } });
             const res = mockRes();
 
@@ -123,7 +123,7 @@ describe('Auth Middleware', () => {
             expect(mockNext).toHaveBeenCalled();
         });
 
-        it('should reject non-user role (driver trying to access user-only endpoint)', () => {
+        it('should reject crew trying to access passenger-only endpoint', () => {
             const req = mockReq({ user: { role: 'driver' } });
             const res = mockRes();
 

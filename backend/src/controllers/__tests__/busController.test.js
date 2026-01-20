@@ -4,15 +4,15 @@
  */
 
 // Mock the Bus model
-jest.mock('../models/Bus', () => ({
+jest.mock('../../models/Bus', () => ({
     findOne: jest.fn(),
     find: jest.fn(),
     create: jest.fn(),
     distinct: jest.fn(),
 }));
 
-const Bus = require('../models/Bus');
-const { registerBus, getBusesByRoute, getAllRoutes, getMyBus } = require('../controllers/busController');
+const Bus = require('../../models/Bus');
+const { registerBus, getBusesByRoute, getAllRoutes, getMyBus } = require('../busController');
 
 // Mock request/response helpers
 const mockReq = (overrides = {}) => ({
@@ -62,7 +62,7 @@ describe('Bus Controller', () => {
             });
             const res = mockRes();
 
-            Bus.findOne.mockResolvedValue({ busId: 'BUS-101' }); // Bus exists
+            Bus.findOne.mockResolvedValue({ busId: 'BUS-101' });
 
             await registerBus(req, res);
 
@@ -73,9 +73,7 @@ describe('Bus Controller', () => {
 
     describe('getBusesByRoute', () => {
         it('should return buses for a specific route', async () => {
-            const req = mockReq({
-                params: { routeId: '138' },
-            });
+            const req = mockReq({ params: { routeId: '138' } });
             const res = mockRes();
 
             const mockBuses = [
@@ -99,21 +97,18 @@ describe('Bus Controller', () => {
             const req = mockReq();
             const res = mockRes();
 
-            const mockRoutes = ['138', '177', '255'];
-            Bus.distinct.mockResolvedValue(mockRoutes);
+            Bus.distinct.mockResolvedValue(['138', '177', '255']);
 
             await getAllRoutes(req, res);
 
             expect(Bus.distinct).toHaveBeenCalledWith('routeId');
-            expect(res.json).toHaveBeenCalledWith(mockRoutes);
+            expect(res.json).toHaveBeenCalledWith(['138', '177', '255']);
         });
     });
 
-    describe('getMyBus', () => {
+    describe('getMyBus (Owner fetches only their buses)', () => {
         it('should return bus assigned to driver', async () => {
-            const req = mockReq({
-                user: { _id: 'driver-123' },
-            });
+            const req = mockReq({ user: { _id: 'driver-123' } });
             const res = mockRes();
 
             const mockBus = {
@@ -125,14 +120,13 @@ describe('Bus Controller', () => {
 
             await getMyBus(req, res);
 
+            // KEY TEST: Owner fetches only their buses
             expect(Bus.findOne).toHaveBeenCalledWith({ driverId: 'driver-123' });
             expect(res.json).toHaveBeenCalledWith(mockBus);
         });
 
-        it('should return 404 if driver has no bus assigned', async () => {
-            const req = mockReq({
-                user: { _id: 'driver-no-bus' },
-            });
+        it('should return 404 if driver has no bus', async () => {
+            const req = mockReq({ user: { _id: 'driver-no-bus' } });
             const res = mockRes();
 
             Bus.findOne.mockResolvedValue(null);
@@ -141,26 +135,6 @@ describe('Bus Controller', () => {
 
             expect(res.status).toHaveBeenCalledWith(404);
             expect(res.json).toHaveBeenCalledWith({ message: 'No bus assigned to this driver' });
-        });
-
-        it('should only return buses owned by the requesting driver (owner fetches only their buses)', async () => {
-            // Test that driver-123 only gets their own bus, not bus of driver-456
-            const req = mockReq({
-                user: { _id: 'driver-123' },
-            });
-            const res = mockRes();
-
-            const mockBus = {
-                busId: 'BUS-101',
-                driverId: 'driver-123', // Matches the requesting user
-            };
-            Bus.findOne.mockResolvedValue(mockBus);
-
-            await getMyBus(req, res);
-
-            // Verify it filters by the authenticated user's ID
-            expect(Bus.findOne).toHaveBeenCalledWith({ driverId: 'driver-123' });
-            expect(res.json).toHaveBeenCalledWith(mockBus);
         });
     });
 });
